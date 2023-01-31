@@ -47,5 +47,10 @@ setup(
 )
 
 
-# DONE: upload to test PyPI: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-# DONE: upload to PyPI: twine upload dist/*
+# Steps to upload to PyPI
+# 0 - Increment the version number in setup.py
+# 1 - Remove the dist folder
+# 2- python3 setup.py sdist bdist_wheel  
+# 3 - twine upload dist/*
+
+# To upload to test PyPI: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
