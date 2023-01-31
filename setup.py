@@ -1,11 +1,15 @@
-# Any library uses this setup.py file:
-
-# Always prefer setuptools over distutils
-from setuptools import setup, find_packages
+"""
+This file is used to build the package and upload it to PyPI
+"""
+# pylint: skip-file  (PyLint is not happy with importing the already built-in open)
+from os import path
 
 # To use a consistent encoding
 from codecs import open
-from os import path
+
+# Always prefer setuptools over distutils
+from setuptools import setup
+
 
 # The directory containing this file
 HERE = path.abspath(path.dirname(__file__))
@@ -18,7 +22,8 @@ with open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
 setup(
     name="botiverse",
     version="0.0.1101",
-    description="botiverse is a chatbot library that offers a high-level API to access a diverse set of chatbot models.",
+    description='''botiverse is a chatbot library that offers a high-level API to
+    access a diverse set of chatbot models''',
     long_description=readme,
     long_description_content_type="text/markdown",
     url="https://botiverse.readthedocs.io/",
@@ -42,5 +47,5 @@ setup(
 )
 
 
-# DONE: upload to test PyPI by running: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-# DONE: upload to PyPI by running: twine upload dist/*
+# DONE: upload to test PyPI: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+# DONE: upload to PyPI: twine upload dist/*
