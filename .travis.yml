@@ -1,0 +1,24 @@
+language: python
+python:
+  - 3.6             # Care that all libs we use don't require any higher version
+
+# Update pip to the latest version
+before_install:
+  - python --version
+  - pip install -U pip
+
+# Install dependencies 
+install:
+  - pip install -r requirements.txt
+
+# Perform needed tests
+script:
+  - python -m unittest -v botiverse-tests/basic_chatbot_test/basic_chatbot_test.py
+  - python -m unittest -v botiverse-tests/TODS_test/TODS_test.py
+
+deploy:
+  provider: pypi
+  username: "__token__"
+  password: "$PYPI_TOKEN"
+  on:
+    branch: main
