@@ -1,0 +1,44 @@
+Metadata-Version: 2.1
+Name: botiverse
+Version: 0.0.1101
+Summary: botiverse is a chatbot library that offers a high-level API to access a diverse set of chatbot models.
+Home-page: https://botiverse.readthedocs.io/
+Author: Essam W., Mohamed Saad, Yousef Atef, Karim Taha
+Author-email: essamwisam@outlook.com
+License: GPLv3
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+
+# Botiverse
+A library that imports chatbots from other galaxies
+
+### Installation
+```
+pip install botiverse
+```
+
+### Get started
+Try to import and playaround with the Basic Chat Bot:
+
+```Python
+from botiverse import basic_chatbot
+
+# Make a new chatbot and give it a name
+Max = basic_chatbot("Max")
+# Train the chatbot
+Max.train("abcdefgh")
+# Ask the chatbot a question
+response = Max.infer("Can you tell me a joke?")
+print(response)
+```
+
+

@@ -1,0 +1,6 @@
+numpy==1.22.4
+torch==1.7.0
+
+# To make this file:
+#     pip install pipreqs
+#     pipreqs ./ --force
