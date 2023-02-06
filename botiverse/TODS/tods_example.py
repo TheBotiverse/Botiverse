@@ -1,7 +1,7 @@
 """
 Example on using Rule-Based TODS.
 """
-from tods import TODS
+from TODS import TODS
 
 NAME = "boti"
 domains_slots = {"book-flight": ["source", "destination", "time"]}

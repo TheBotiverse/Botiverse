@@ -4,10 +4,18 @@ botiverse.TODS package
 Submodules
 ----------
 
-botiverse.TODS.tods module
+botiverse.TODS.TODS module
 --------------------------
 
-.. automodule:: botiverse.TODS.tods
+.. automodule:: botiverse.TODS.TODS
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+botiverse.TODS.TODS\_example module
+-----------------------------------
+
+.. automodule:: botiverse.TODS.TODS_example
    :members:
    :undoc-members:
    :show-inheritance:
