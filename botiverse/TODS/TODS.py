@@ -1,7 +1,7 @@
 """
 This module contains the base code and interface of TODS, .
 """
-from utils import RuleBasedNLU, MostRecentDST, RandomDP, TemplateBasedNLG
+from botiverse.TODS.utils import RuleBasedNLU, MostRecentDST, RandomDP, TemplateBasedNLG
 
 
 class TODS:
