@@ -1,0 +1,22 @@
+[
+    {
+        "dialogue_idx": "PMUL1635.json",
+        "dialogue": 
+        [
+            {
+                "system_transcript": "",
+                "turn_idx": 0,
+                "belief_state": [
+                    {
+                        "slots": [
+                            "restaurant-food",
+                            "chinese"
+                        ]
+                    }
+                ],
+                "transcript": "hello I want a restaurant with chinese food.",
+                "domain": "restaurant"
+            }
+        ]
+    }
+]
