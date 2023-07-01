@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../')
+
 from botiverse import DNNTODS
 
 name = "boti"
