@@ -239,7 +239,8 @@ def predict(self, X):
     :param X: The test data arranged as a float numpy array of shape (N, d)
     '''
     if len(X.shape) == 2:   X = X[..., np.newaxis]
-    return np.array([np.argmax(self.feedforward(x)) for x in X])
+    # return the predicted class and the probability of the predicted class
+    return np.array([np.argmax(self.feedforward(x)) for x in X]), np.array([np.max(self.feedforward(x)) for x in X])
         
 @NNClass
 def evaluate(self, X,y):

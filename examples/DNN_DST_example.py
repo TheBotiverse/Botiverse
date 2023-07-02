@@ -1,5 +1,3 @@
-import sys
-sys.path.append('../')
 
 from botiverse import DNNDST
 
@@ -14,3 +12,4 @@ print(train_json)
 
 dst = DNNDST(domains, slot_list, label_maps)
 dst.train(train_json, train_json, train_json)
+

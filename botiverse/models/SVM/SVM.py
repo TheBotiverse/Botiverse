@@ -5,7 +5,7 @@
 # 
 # In this notebook, we shall demonstrate implementing multiclass SVM from scratch using the dual formulation and quadratic programming.
 
-# In[8]:
+# In[64]:
 
 
 '''
@@ -21,14 +21,14 @@ import copy
 
 # ### SVM Class
 
-# In[9]:
+# In[65]:
 
 
 class SVM:
     '''
     This class implements the kernelized soft-margin Support Vector Machine algorithm.
     '''
-    linear = lambda x, xࠤ , c: x @ xࠤ .T
+    linear = lambda x, xࠤ , c=0: x @ xࠤ .T
     polynomial = lambda x, xࠤ , Q=5: (1 + x @ xࠤ.T)**Q
     rbf = lambda x, xࠤ , γ=10: np.exp(-γ * distance.cdist(x, xࠤ, 'sqeuclidean'))
     kernel_funs = {'linear': linear, 'polynomial': polynomial, 'rbf': rbf}
@@ -40,6 +40,7 @@ class SVM:
         :param C: The regularization parameter.
         :param k: The hyperparameter for the polynomial and rbf kernels. Ignored for the linear kernel.
         '''
+        self.kernel_str = kernel
         self.kernel = SVM.kernel_funs[kernel]
         self.C = C
         self.k = k
@@ -100,11 +101,11 @@ SVMClass = lambda func: setattr(SVM, func.__name__, func) or func
 # <br>
 # $ h = \begin{bmatrix} 0 \\ C \end{bmatrix} $
 
-# In[10]:
+# In[66]:
 
 
 @SVMClass
-def fit(self, X, y):
+def fit(self, X, y, eval_train=False):
     '''
     Fit the SVM model to the given data with N training examples and d features.
     :param X: The training data arranged as a float numpy array of shape (N, d)
@@ -115,7 +116,7 @@ def fit(self, X, y):
     '''
     if len(np.unique(y)) > 2:
         self.multiclass = True
-        return self.multi_fit(X, y)
+        return self.multi_fit(X, y, eval_train)
     
     if set(np.unique(y)) == {0, 1}: y[y == 0] = -1
     self.y = y.reshape(-1, 1).astype(np.double) # Has to be a column vector
@@ -143,21 +144,23 @@ def fit(self, X, y):
     cvxopt.solvers.options['show_progress'] = False
     sol = cvxopt.solvers.qp(P, q, G, h, A, b)
     self.αs = np.array(sol["x"])
-    
+        
     # Maps into support vectors
     self.is_sv = ((self.αs > 1e-3) & (self.αs <= self.C)).squeeze()
     self.margin_sv = np.argmax((1e-3 < self.αs) & (self.αs < self.C - 1e-2))
+    
+    if eval_train:  print(f"Model finished training with accuracy {self.evaluate(X, y)}")
 
 
 # #### Multiclass Case with OVR
 
 # In this, we train $K$ binary classifiers, where $K$ is the number of classes where each classifier perceives one class as +1 and all other classes as -1.
 
-# In[11]:
+# In[67]:
 
 
 @SVMClass
-def multi_fit(self, X, y):
+def multi_fit(self, X, y, eval_train=False):
     '''
     Fit k classifier for k classes.
     :param X: The training data arranged as a float numpy array of shape (N, d)
@@ -172,10 +175,11 @@ def multi_fit(self, X, y):
         # change the labels to -1 and 1
         Ys[Ys!=i], Ys[Ys==i] = -1, +1
         # fit the classifier
-        clf = SVM(kernel=self.kernel, C=self.C, k=self.k)
+        clf = SVM(kernel=self.kernel_str, C=self.C, k=self.k)
         clf.fit(Xs, Ys)
         # save the classifier
         self.clfs.append(clf)
+    if eval_train:  print(f"Model finished training with accuracy {self.evaluate(X, y)}")
 
 
 # #### SVM Prediction
@@ -188,31 +192,44 @@ def multi_fit(self, X, y):
 # 
 # 
 
-# In[12]:
+# In[68]:
 
 
 @SVMClass
-def predict(self, X_t, return_score=False):
+def predict(self, X_t):
     '''
     Predict the labels for given test data.
     :param X_t: The test data arranged as a float numpy array of shape (N, d)
     :param return_score: If True, return the score instead of the label.
     :return: The predicted labels arranged as a numpy array of shape (N,) where each element is in {-1, 1} or {0, 1} unless return_score is True in which case the SVM score is returned.
     '''
-    if self.multiclass: return self.multi_predict(X_t, return_score)
+    if self.multiclass: return self.multi_predict(X_t)
     xₛ, yₛ = self.X[self.margin_sv, np.newaxis], self.y[self.margin_sv]
     αs, y, X= self.αs[self.is_sv], self.y[self.is_sv], self.X[self.is_sv]
 
-    b = yₛ - np.sum(αs * y * self.kernel(X, xₛ), axis=0)
-    score = np.sum(αs * y * self.kernel(X, X_t), axis=0) + b
-    return score if return_score else np.sign(score).astype(int)
+    b = yₛ - np.sum(αs * y * self.kernel(X, xₛ, self.k), axis=0)
+    score = np.sum(αs * y * self.kernel(X, X_t, self.k), axis=0) + b
+    return np.sign(score).astype(int), score
+
+
+@SVMClass
+def evaluate(self, X,y):
+    '''
+    Compare the predicted labels for given test data y with the actual labels by passing X to model.
+    :param X: The test data arranged as a float numpy array of shape (N, d)
+    :param y: The test labels arranged as a numpy array of shape (N,) where each element is an integer between 0 and k-1
+    '''
+    outputs, _ = self.predict(X)
+    accuracy = np.sum(outputs == y) / len(y)
+    
+    return round(accuracy, 2)
 
 
 # #### Multiclass Case with OVR
 
 # Each classifier compute the score of a class against all other classes. The class with the highest score is the predicted class.
 
-# In[13]:
+# In[69]:
 
 
 @SVMClass
@@ -225,15 +242,19 @@ def multi_predict(self, X):
     # get the predictions from all classifiers
     preds = np.zeros((X.shape[0], self.k))
     for i, clf in enumerate(self.clfs):
-        preds[:, i] = clf.predict(X, return_score=True)
+        _, preds[:, i] = clf.predict(X)
     
-    # get the argmax
-    return np.argmax(preds, axis=1)
+
+    # transform the predictions into probabilities using softmax
+    preds = np.exp(preds) / np.sum(np.exp(preds), axis=1, keepdims=True)    
+    
+    # get the argmax and the corresponding score
+    return np.argmax(preds, axis=1), np.max(preds, axis=1)
 
 
 # ### Example
 
-# In[14]:
+# In[70]:
 
 
 # if running from notebook

@@ -681,7 +681,7 @@ class TTS():
         self.model.eval()
         self.WaveGlow = waveglow.load.load_model(download=force_download_wg)
     
-    def speak(self, text, play=False, save=False):
+    def speak(self, text, play=True, save=False):
         '''
         Pass given text through the FastSpeech 1.0 model and the WaveGlow model to generate speech.
         text: text to be spoken with at most 300 characters
