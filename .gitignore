@@ -6,3 +6,6 @@ botive.egg-info/
 dist/
 build/
 botive.egg-info
+*.txt
+botiverse.egg-info/PKG-INFO
+botiverse/models/FastSpeech1/weights.pth
