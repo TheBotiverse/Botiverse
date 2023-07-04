@@ -1,5 +1,5 @@
 
-from botiverse import DNNDST
+from botiverse.bots import DNNDST
 
 domains = ['restaurant']
 slot_list = ['restaurant-food']

@@ -1,5 +1,5 @@
 
-from botiverse import DNNTODS
+from botiverse.bots import DNNTODS
 
 name = "boti"
 domains = ['restaurant']

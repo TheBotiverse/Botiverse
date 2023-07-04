@@ -1,5 +1,5 @@
-from botiverse.TODS.utils2 import RandomDP, TemplateBasedNLG
-from botiverse.TODS.DNN_DST.DNN_DST import DNNDST
+from botiverse.bots.TODS.utils2 import RandomDP, TemplateBasedNLG
+from botiverse.bots.TODS.DNN_DST.DNN_DST import DNNDST
 
 class DNNTODS:
 
