@@ -17,6 +17,9 @@ examples/DNN_DST_example/Multi-woz_demo/model.pt
 examples/DNN_DST_example/sim-R_demo/ontology.json
 examples/DNN_DST_example/sim-R_demo/label_maps.json
 examples/DNN_DST_example/sim-R_demo/model.pt
+
 *.txt
+!botiverse/bots/TODS/DNN_DST/vocab.txt
+
 botiverse.egg-info/PKG-INFO
 botiverse/models/FastSpeech1/weights.pth
