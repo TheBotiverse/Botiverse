@@ -18,7 +18,7 @@ class BertEmbedder():
         return emb.squeeze()
     
     
-    def closest_sentence(self, new_sentence,  sentence_list, retun_ind):
+    def closest_sentence(self, new_sentence,  sentence_list, retun_ind=False):
         '''
         Given a list of sentences and a new sentence, return the sentence from the list that is closest to the new sentence.
         :param new_sentence: The new sentence to compare to the list of sentences.
