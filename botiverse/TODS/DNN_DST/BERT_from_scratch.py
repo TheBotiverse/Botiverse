@@ -3,8 +3,9 @@ import torch.nn as nn
 from collections import OrderedDict
 from transformers import BertModel
 
+
 # Bert configuration
-class BertConfig(object):
+class BERTConfig(object):
     def __init__(self, vocab_size=30522, hidden_size=768, encoder_layers=12, heads=12, ff_size=3072, token_types=2, max_seq=512, padding_idx=0, layer_norm_eps=1e-12, dropout=0.1):
         self.vocab_size = vocab_size
         self.hidden_size = hidden_size
@@ -17,12 +18,12 @@ class BertConfig(object):
         self.layer_norm_eps = layer_norm_eps
         self.dropout = dropout
 
-config = BertConfig()
+config = BERTConfig()
 
 # Embeddings
 # 1. Cluster similar words together.
-# 2. Preserve different relationships between words such as: semantic, syntactic, linear, 
-# and since BERT is bidirectional it will also preserve contextual relationships as well.  
+# 2. Preserve different relationships between words such as: semantic, syntactic, linear,
+# and since BERT is bidirectional it will also preserve contextual relationships as well.
 class Embeddings(nn.Module):
     def __init__(self):
         super(Embeddings, self).__init__()
@@ -35,18 +36,19 @@ class Embeddings(nn.Module):
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, input_ids, token_type_ids): # input_ids: [batch_size, seq_len] token_type_ids: [batch_size, seq_len]
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         seq_len = input_ids.size(1)
-        position_ids = torch.arange(seq_len).unsqueeze(0).expand_as(input_ids) # position_ids: [batch_size, seq_len]
+        position_ids = torch.arange(seq_len).unsqueeze(0).expand_as(input_ids).to(device) # position_ids: [batch_size, seq_len]
         word_embeddings = self.word_embeddings(input_ids)  # word_embeddings: [batch_size, seq_len, hidden_size]
         position_embeddings = self.position_embeddings(position_ids) # position_embeddings: [batch_size, seq_len, hidden_size]
         token_type_embeddings = self.token_type_embeddings(token_type_ids) # token_type_embeddings: [batch_size, seq_len, hidden_size]
         embeddings = word_embeddings + position_embeddings + token_type_embeddings # embeddings: [batch_size, seq_len, hidden_size]
-        # Normalize by subtracting the mean and dividing by the standard deviation calculated across the feature dimension 
+        # Normalize by subtracting the mean and dividing by the standard deviation calculated across the feature dimension
         # then multiply by a learned gain parameter and add to a learned bias parameter.
         embeddings = self.layer_norm(embeddings) # embeddings: [batch_size, seq_len, hidden_size]
         embeddings = self.dropout(embeddings) # embeddings: [batch_size, seq_len, hidden_size]
         return embeddings
-    
+
 # Encoder layer
 class EncoderLayer(nn.Module):
     def __init__(self):
@@ -70,7 +72,7 @@ class EncoderLayer(nn.Module):
         context = self.ffn_dropout(context) # context: [batch_size, seq_len, hidden_size]
         output = self.ffn_layer_norm(output + context) # output: [batch_size, seq_len, hidden_size]
         return output, attention
-    
+
 # Multi-head attention
 class MultiHeadAttention(nn.Module):
     def __init__(self):
@@ -81,8 +83,8 @@ class MultiHeadAttention(nn.Module):
         self.w_o = nn.Linear(config.hidden_size, config.hidden_size)
         self.softmax = nn.Softmax(dim=-1)
         self.dropout = nn.Dropout(config.dropout)
-    
-    def forward(self, query, key, value, attention_mask): # query: [batch_size, seq_len, hidden_size] key: [batch_size, seq_len, hidden_size] 
+
+    def forward(self, query, key, value, attention_mask): # query: [batch_size, seq_len, hidden_size] key: [batch_size, seq_len, hidden_size]
                                                           # value: [batch_size, seq_len, hidden_size] attention_mask: [batch_size, seq_len_q, seq_len_k]
 
         batch_size, seq_len, hidden_size = query.size()
@@ -102,7 +104,7 @@ class MultiHeadAttention(nn.Module):
         context = context.transpose(1, 2).contiguous().view(batch_size, seq_len, hidden_size) # context: [batch_size, seq_len, hidden_size]
         output = self.w_o(context) # output: [batch_size, seq_len, hidden_size]
         return output, attention
-    
+
 # Position-wise feed-forward network
 class PositionWiseFeedForward(nn.Module):
     def __init__(self):
@@ -110,13 +112,13 @@ class PositionWiseFeedForward(nn.Module):
         self.linear1 = nn.Linear(config.hidden_size, config.ff_size)
         self.linear2 = nn.Linear(config.ff_size, config.hidden_size)
         self.gelu = nn.GELU()
-    
+
     def forward(self, input):
         output = self.linear1(input) # output: [batch_size, seq_len, ff_size]
         output = self.gelu(output) # output: [batch_size, seq_len, ff_size]
         output = self.linear2(output) # output: [batch_size, seq_len, hidden_size]
         return output
-    
+
 # Bert
 # 1. Puts it all together.
 class Bert(nn.Module):
@@ -127,8 +129,8 @@ class Bert(nn.Module):
         self.linear = nn.Linear(config.hidden_size, config.hidden_size)
         self.tanh = nn.Tanh()
 
-    def forward(self, input_ids, token_type_ids, attention_mask): # input_ids: [batch_size, seq_len] token_type_ids: [batch_size, seq_len] attention_mask: [batch_size, seq_len]
-        
+    def forward(self, input_ids, token_type_ids, attention_mask, return_dict=False): # input_ids: [batch_size, seq_len] token_type_ids: [batch_size, seq_len] attention_mask: [batch_size, seq_len]
+
         # Embedding
         output = self.embeddings(input_ids, token_type_ids) # output: [batch_size, seq_len, hidden_size]
 
@@ -199,12 +201,12 @@ def Example():
     # Pass the inputs through both models and compare the outputs
     with torch.no_grad():
         model_output1, model_output2 = model(ids, token_type_ids, attention_mask)
-        pretrained_output1, pretrained_output2 = pretrained_model(ids, 
+        pretrained_output1, pretrained_output2 = pretrained_model(ids,
                                             attention_mask=attention_mask,
                                             token_type_ids=token_type_ids,
                                             return_dict=False
                                             )
-        
+
     print(model_output1.size(), model_output1)
     print(pretrained_output1.size(), pretrained_output1)
     print()

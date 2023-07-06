@@ -1,127 +1,57 @@
 import torch
 import numpy as np
-import string
 from sklearn.metrics import f1_score
-from botiverse.TODS.DNN_DST.utils import normalize_text
 import copy
 from tqdm import tqdm
 
-def jaccard(str1, str2): 
-  a = set(str1.lower().split()) 
-  b = set(str2.lower().split()) 
-  c = a.intersection(b) 
-  return float(len(c)) / (len(a) + len(b) - len(c))
+from botiverse.TODS.DNN_DST.utils import normalize, is_included, included_with_label_maps, create_span_output
+from botiverse.TODS.DNN_DST.config import *
 
-def create_span_output(output_start, output_end, padding_len, input_tokens):
 
-  mask = [0] * (len(output_start) - padding_len)
+def get_informed_value(value, target, label_maps):
+  informed = False
+  informed_value = value
 
-  if padding_len > 0:
-    idx_start = np.argmax(output_start[1:-padding_len]) + 1
-    idx_end = np.argmax(output_end[1:-padding_len]) + 1
-  else:
-    idx_start = np.argmax(output_start[1:]) + 1
-    idx_end = np.argmax(output_end[1:]) + 1
+  value = ' '.join(normalize(value))
+  target = ' '.join(normalize(target))
 
-  for mj in range(idx_start, idx_end + 1):
-    mask[mj] = 1
+  if value == target or is_included(value, target) or is_included(target, value):
+    informed = True
+  if value in label_maps:
+    informed = included_with_label_maps(target, value, label_maps)
+  elif target in label_maps:
+    informed = included_with_label_maps(value, target, label_maps)
+  if informed: informed_value = target
 
-  output_tokens = [x for p, x in enumerate(input_tokens.split()) if mask[p] == 1]
-  output_tokens = [x for x in output_tokens if x not in ('[CLS]', '[SEP]')]
+  return informed_value
 
-  final_output = ''
-  for ot in output_tokens:
-    if ot.startswith('##'):
-      final_output = final_output + ot[2:]
-    elif len(ot) == 1 and ot in string.punctuation:
-      final_output = final_output + ot
-    elif len(final_output) > 0 and final_output[-1] in string.punctuation:
-      final_output = final_output + ot
-    else:
-      final_output = final_output + " " + ot
 
-  final_output = final_output.strip()
-  
-  return final_output
+def eval(raw_data, data, model, device, n_slots, slot_list, label_maps):
 
-def eval_f1_jac(data_loader, model, device, n_slots):
-  
   model.eval()
 
-  jaccards = []
-  y_true, y_pred = [], []
+  # normalize label_maps
+  label_maps_tmp = {}
+  for v in label_maps:
+      label_maps_tmp[' '.join(normalize(v))] = [' '.join(normalize(nv)) for nv in label_maps[v]]
+  label_maps = label_maps_tmp
 
-  with torch.no_grad():
-    for batch_idx, batch in enumerate(tqdm(data_loader)):
-      
-      ids = batch['ids'].to(device)
-      mask = batch['mask'].to(device)
-      token_type_ids = batch['token_type_ids'].to(device)
-      input_tokens = batch['input_tokens']
-      padding_len = batch['padding_len']
-      target_values = batch['target_values']
-      spans_start = batch['spans_start']
-      spans_end = batch['spans_end']
-      opers = batch['opers']
 
-      slots_start_logits, slots_end_logits, slots_oper_logits = model(ids=ids,
-                                                                      mask=mask,
-                                                                      token_type_ids=token_type_ids)
-      
-      for b in range(len(ids)):
-        for slot in range(n_slots):
+  # metrics
+  Y_true, Y_pred = [], []
+  per_slot_acc = {slot:[] for slot in slot_list}
+  joint_goal_acc = []
 
-          final_output = create_span_output(slots_start_logits[slot][b].cpu().detach().numpy(),
-                                            slots_end_logits[slot][b].cpu().detach().numpy(),
-                                            padding_len[b],
-                                            input_tokens[b])
-
-          target_value = target_values[b].split('[VALUESEP]')[slot].strip()
-          jac = jaccard(target_value, final_output.strip())
-          if spans_start[b][slot] != -100 and spans_start[b][slot] != 0:
-            jaccards.append(jac)
-
-      for slot in range(n_slots):
-        pred = slots_oper_logits[slot].argmax(dim=-1)
-        y_pred.extend(pred.tolist())
-        y_true.extend(opers[:,slot].tolist())
-  
-  mean_jac = np.mean(jaccards)
-  macro_f1_score = f1_score(y_true, y_pred, average='macro')
-  all_f1_score = f1_score(y_true, y_pred, average=None)
-
-  return mean_jac, macro_f1_score, all_f1_score
-
-def right_state(pred_state, true_state, label_maps):
-  
-  if len(pred_state) != len(true_state):
-    return False
-
-  for slot, value in true_state.items():
-    variant_labels = [value]
-    if value in label_maps:
-      variant_labels += label_maps[value]
-    #
-    for i in range(len(variant_labels)):
-      variant_labels[i] = normalize_text(variant_labels[i])
-    if slot in pred_state:
-      pred_state[slot] = normalize_text(pred_state[slot])
-    #
-    if slot not in pred_state or pred_state[slot] not in variant_labels:
-      return False
-
-  return True
-
-def eval_joint(raw_data, data, model, device, n_slots, slot_list, label_maps):
-  
-  model.eval()
-
+  # state
   pred_last_state = {}
-  joint_goal_acc = 0
+  pre_dialogue_idx = -1
+
+  # debugging
   states = []
   sentences = []
   indices = []
-  pre_dialogue_idx = -1
+  prev_idx = -1
+
   with torch.no_grad():
 
     for raw_turn, turn in tqdm(zip(raw_data, data), total=len(raw_data)):
@@ -129,71 +59,159 @@ def eval_joint(raw_data, data, model, device, n_slots, slot_list, label_maps):
       ids = torch.tensor(turn.ids, dtype=torch.long).unsqueeze(0).to(device)
       mask = torch.tensor(turn.mask, dtype=torch.long).unsqueeze(0).to(device)
       token_type_ids = torch.tensor(turn.token_type_ids, dtype=torch.long).unsqueeze(0).to(device)
+      inform_aux_features = torch.tensor(turn.inform_aux_features, dtype=torch.float).unsqueeze(0).to(device)
+      # ds_aux_features = torch.tensor(turn.ds_aux_features, dtype=torch.float).unsqueeze(0).to(device)
       input_tokens = ' '.join(turn.input_tokens)
       padding_len = turn.padding_len
       turn_idx = raw_turn.turn_idx
       dialogue_idx = raw_turn.dial_idx
-      current_state = raw_turn.cur_state
+      current_state = turn.cur_state
+      inform_mem = raw_turn.inform_mem
+      opers = turn.opers
 
-      # if dialogue_idx == 'PMUL2075.json' and turn_idx == 0:
-      #   print(ids)
-      #   print(mask)
-      #   print(token_type_ids)
-      #   print(input_tokens)
-      #   print(padding_len)
-      #   print(turn_idx)
-      #   print(dialogue_idx)
-      #   print(current_state)
-      #   print(pred_last_state)
-
-
+      # new dialogue reset the state and the state auxiliary features
       if turn_idx == 0 or dialogue_idx != pre_dialogue_idx:
         pred_last_state = {}
+        ds_aux_features = torch.zeros((1, n_slots)).to(device)
 
+      # get model outputs
+      slots_start_logits, slots_end_logits, slots_oper_logits, slots_refer_logits = model(ids=ids,
+                                                                                          mask=mask,
+                                                                                          token_type_ids=token_type_ids,
+                                                                                          inform_aux_features=inform_aux_features,
+                                                                                          ds_aux_features=ds_aux_features)
 
-      # if dialogue_idx == 'PMUL2075.json' and turn_idx == 0:
-      #   print(pred_last_state)
+      # update the predicted state of each slot
+      pred_current_state = pred_last_state.copy()
+      for slot_idx, slot in enumerate(slot_list):
 
+        # get the predicted operation
+        pred_oper = slots_oper_logits[slot_idx][0].argmax(dim=-1).item()
 
-      slots_start_logits, slots_end_logits, slots_oper_logits = model(ids=ids,
-                                                                      mask=mask,
-                                                                      token_type_ids=token_type_ids)
+        # keep track of operations for f1 score
+        Y_pred.append(pred_oper)
+        Y_true.append(OPER2ID[opers[slot_idx]])
 
-      pred_current_state = pred_last_state
-      for slot in range(n_slots):
-
-        pred_oper = slots_oper_logits[slot][0].argmax(dim=-1).item()
-
-        if pred_oper == 0: # carryover
+        # update the slot based on the operation
+        if pred_oper == OPER2ID['carryover']: # carryover
           continue
-        elif pred_oper == 1: # dontcare
-          pred_current_state[slot_list[slot]] = 'dontcare'
-        elif pred_oper == 2: # update
-          pred_current_state[slot_list[slot]] = create_span_output(slots_start_logits[slot][0].cpu().detach().numpy(),
-                                                                   slots_end_logits[slot][0].cpu().detach().numpy(),
-                                                                   padding_len,
-                                                                   input_tokens)
-        elif pred_oper == 3: # delete
-          if slot_list[slot] in pred_current_state:
-            pred_current_state.pop(slot_list[slot])
-        elif pred_oper == 4: # yes
-          pred_current_state[slot_list[slot]] = 'yes'
-        elif pred_oper == 5: # no
-          pred_current_state[slot_list[slot]] = 'no'
+        elif pred_oper == OPER2ID['dontcare']: # dontcare
+          pred_current_state[slot] = 'dontcare'
+        elif pred_oper == OPER2ID['update']: # update
+          pred_current_state[slot] = create_span_output(slots_start_logits[slot_idx][0].cpu().detach().numpy(),
+                                                        slots_end_logits[slot_idx][0].cpu().detach().numpy(),
+                                                        padding_len,
+                                                        input_tokens)
+        elif pred_oper == OPER2ID['refer']: # refer
+          refered_slot = slots_refer_logits[slot_idx][0].argmax(dim=-1).item()
+          if refered_slot != n_slots and slot_list[refered_slot] in pred_last_state:
+            pred_current_state[slot] = pred_last_state[slot_list[refered_slot]]
+        elif pred_oper == OPER2ID['yes']: # yes
+          pred_current_state[slot] = 'yes'
+        elif pred_oper == OPER2ID['no']: # no
+          pred_current_state[slot] = 'no'
+        elif pred_oper == OPER2ID['inform']: # inform
+          if slot in inform_mem:
+            pred_current_state[slot] = '§§' + inform_mem[slot][0]
 
-      if right_state(pred_current_state, current_state, label_maps) == True:
-        joint_goal_acc += 1
-      
-      # if dialogue_idx == 'PMUL2075.json' and turn_idx == 0:
-      #   print(pred_current_state)
-      #   print(right_state(pred_current_state, current_state, label_maps))
+      # update the state auxiliary features
+      for slot_idx, slot in enumerate(slot_list):
+          ds_aux_features[0, slot_idx] = 1 if slot in pred_current_state else 0
 
-      if right_state(pred_current_state, current_state, label_maps) == False:
+      # calculate accuracy
+      joint = True
+      for slot_idx, slot in enumerate(slot_list):
+
+        # if not present in both
+        if slot not in current_state and slot not in pred_current_state:
+          per_slot_acc[slot].append(1.0)
+          continue
+
+        # if slot only in one of them then mark as 0
+        if (slot in current_state and slot not in pred_current_state) or (slot not in current_state and slot in pred_current_state):
+          joint = False
+          per_slot_acc[slot].append(0.0)
+          continue
+
+        # get values
+        val = current_state[slot]
+        pred_val = pred_current_state[slot]
+
+        # normalize values
+        val = ' '.join(normalize(val))
+        pred_val = ' '.join(normalize(pred_val))
+
+        # handle inform
+        if pred_val[0:3] == "§§ ":
+          if pred_val[3:] != 'none':
+              pred_val = get_informed_value(pred_val[3:], val, label_maps)
+        elif pred_val[0:2] == "§§":
+            if pred_val[2:] != 'none':
+                pred_val = get_informed_value(pred_val[2:], val, label_maps)
+
+        # match
+        if pred_val == val:
+          per_slot_acc[slot].append(1.0)
+        elif val != 'none' and val != 'dontcare' and val != 'true' and val != 'false' and val in label_maps:
+          no_match = True
+          for variant in label_maps[val]:
+              if variant == pred_val:
+                  no_match = False
+                  break
+          if no_match:
+              per_slot_acc[slot].append(0.0)
+              joint = False
+          else:
+              per_slot_acc[slot].append(1.0)
+        else:
+            per_slot_acc[slot].append(0.0)
+            joint = False
+
+      # append joint
+      joint_goal_acc.append(1.0 if joint else 0.0)
+
+
+      # update vars for next turn
+      pred_last_state = pred_current_state.copy()
+      pre_dialogue_idx = dialogue_idx
+
+#       # debugging
+#       if per_slot_acc['attraction-name'][-1] < 0.99 and prev_idx != dialogue_idx:
+#         print('dialogue_idx', dialogue_idx)
+#         print('turn_idx', turn_idx)
+#         print('pred_state', dict(sorted(pred_current_state.items())))
+#         print('cur_state', dict(sorted(current_state.items())))
+#         print('input tok', input_tokens)
+#         print('inform_mem', inform_mem)
+#         print('inform aux', inform_aux_features)
+#         print('oper', opers[slot_list.index('attraction-name')])
+#         prev_idx = dialogue_idx
+
+      # debugging
+      if joint == False:
         states.append((copy.deepcopy(pred_current_state), current_state))
         sentences.append(input_tokens)
         indices.append((dialogue_idx, turn_idx))
 
-      pred_last_state = pred_current_state
-      pre_dialogue_idx = dialogue_idx
+  # debugging
+  # prev = ""
+  # for i in range(len(states)):
+  #   if prev == indices[i][0] or len(states[i][0]) != len(states[i][1]):
+  #     continue
+  #   if 'attraction-name' not in states[i][1]:# and 'restaurant-name' not in states[i][1]:
+  #     continue
+  #   prev = indices[i][0]
+  #   print(dict(sorted(states[i][0].items())))
+  #   print(dict(sorted(states[i][1].items())))
+  #   print(sentences[i])
+  #   print(indices[i])
+  #   print("\n")
 
-  return joint_goal_acc / len(data), states, sentences, indices
+  # calculate per slot accuracy
+  per_slot_acc = {slot: np.mean(acc) for slot, acc in per_slot_acc.items()}
+
+  # calculate f1 scores
+  macro_f1_score = f1_score(Y_true, Y_pred, average='macro')
+  all_f1_score = f1_score(Y_true, Y_pred, average=None)
+
+  return np.mean(joint_goal_acc), per_slot_acc, macro_f1_score, all_f1_score

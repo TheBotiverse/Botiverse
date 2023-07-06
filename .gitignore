@@ -6,3 +6,14 @@ botive.egg-info/
 dist/
 build/
 botive.egg-info
+botiverse.egg-info
+botiverse/models/FastSpeech1/weights.pth
+botiverse/basic_chatbot/glove.6B.50d.txt
+
+examples/DNN_DST_example/Multi-woz_demo/ontology.json
+examples/DNN_DST_example/Multi-woz_demo/label_maps.json
+examples/DNN_DST_example/Multi-woz_demo/model.pt
+
+examples/DNN_DST_example/sim-R_demo/ontology.json
+examples/DNN_DST_example/sim-R_demo/label_maps.json
+examples/DNN_DST_example/sim-R_demo/model.pt
