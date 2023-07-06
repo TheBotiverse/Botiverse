@@ -2,8 +2,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-from botiverse.TODS.DNN_DST.utils import AverageMeter
-from botiverse.TODS.DNN_DST.config import *
+from botiverse.models.TRIPPY.utils import AverageMeter
 
 
 def span_loss_fn(start_logits, end_logits, targets_start, targets_end, ignore_idx):
@@ -19,7 +18,7 @@ def refer_loss_fn(refer_logits, refer_labels, ignore_idx):
   l = nn.CrossEntropyLoss(ignore_index=ignore_idx, reduction='none')(refer_logits, refer_labels)
   return l
 
-def train(data_loader, model, optimizer, device, scheduler, n_slots, ignore_idx):
+def train(data_loader, model, optimizer, device, scheduler, n_slots, ignore_idx, oper2id):
   model.train()
 
   losses = AverageMeter()
@@ -59,7 +58,7 @@ def train(data_loader, model, optimizer, device, scheduler, n_slots, ignore_idx)
       span_loss *= token_is_pointable
 
       refer_loss = refer_loss_fn(slots_refer_logits[slot], refer[:,slot], ignore_idx)
-      token_is_referrable = (opers[:,slot] == OPER2ID['refer']).float()
+      token_is_referrable = (opers[:,slot] == oper2id['refer']).float()
       refer_loss *= token_is_referrable
 
       total_loss = 0.8 * oper_loss + 0.1 * span_loss + 0.1 * refer_loss

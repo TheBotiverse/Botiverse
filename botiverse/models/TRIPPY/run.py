@@ -3,38 +3,37 @@ from torch.optim import AdamW
 from transformers import get_linear_schedule_with_warmup
 
 
-from botiverse.TODS.DNN_DST.data import prepare_data, Dataset
-from botiverse.TODS.DNN_DST.train import train
-from botiverse.TODS.DNN_DST.evaluate import eval
-from botiverse.TODS.DNN_DST.config import *
+from botiverse.models.TRIPPY.data import prepare_data, Dataset
+from botiverse.models.TRIPPY.train import train
+from botiverse.models.TRIPPY.evaluate import eval
 
 
-def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, device, non_referable_slots, non_referable_pairs, model_path):
+def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, device, non_referable_slots, non_referable_pairs, model_path, TRIPPY_config):
 
     n_slots = len(slot_list)
 
     # train
     print('Preprocessing train set...')
-    train_raw_data, train_data = prepare_data(train_json, slot_list, label_maps, TOKENIZER, MAX_LEN, domains, non_referable_slots, non_referable_pairs)
+    train_raw_data, train_data = prepare_data(train_json, slot_list, label_maps, TRIPPY_config.tokenizer, TRIPPY_config.max_len, domains, non_referable_slots, non_referable_pairs)
     train_dataset = Dataset(train_data, n_slots, OPER2ID, slot_list)
     train_sampler = torch.utils.data.RandomSampler(train_dataset)
     train_data_loader = torch.utils.data.DataLoader(train_dataset,
                                                     sampler=train_sampler,
-                                                    batch_size=TRAIN_BATCH_SIZE)
+                                                    batch_size=TRIPPY_config.train_batch_size)
 
     # dev
     print('Preprocessing dev set...')
-    dev_raw_data, dev_data = prepare_data(dev_json, slot_list, label_maps, TOKENIZER, MAX_LEN, domains, non_referable_slots, non_referable_pairs)
-    dev_dataset = Dataset(dev_data, n_slots, OPER2ID, slot_list)
+    dev_raw_data, dev_data = prepare_data(dev_json, slot_list, label_maps, tokenizer, max_len, domains, non_referable_slots, non_referable_pairs)
+    dev_dataset = Dataset(dev_data, n_slots, TRIPPY_config.oper2id, slot_list)
     dev_data_loader = torch.utils.data.DataLoader(dev_dataset,
-                                                  batch_size=DEV_BATCH_SIZE)
+                                                  batch_size=TRIPPY_config.dev_batch_size)
 
     # test
     print('Preprocessing test set...')
-    test_raw_data, test_data = prepare_data(test_json, slot_list, label_maps, TOKENIZER, MAX_LEN, domains, non_referable_slots, non_referable_pairs)
+    test_raw_data, test_data = prepare_data(test_json, slot_list, label_maps, tokenizer, max_len, domains, non_referable_slots, non_referable_pairs)
     test_dataset = Dataset(test_data, n_slots, OPER2ID, slot_list)
     test_data_loader = torch.utils.data.DataLoader(test_dataset,
-                                                   batch_size=TEST_BATCH_SIZE)
+                                                   batch_size=TRIPPY_config.test_batch_size)
 
     param_optimizer = list(model.named_parameters())
     no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
@@ -43,7 +42,7 @@ def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, 
             "params": [
                 p for n, p in param_optimizer if not any(nd in n for nd in no_decay)
             ],
-            "weight_decay": WEIGHT_DECAY,
+            "weight_decay": TRIPPY_config.weight_decay,
         },
         {
             "params": [
@@ -54,23 +53,23 @@ def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, 
     ]
 
     # num_train_steps = int(len(train_dataset) / TRAIN_BATCH_SIZE * EPOCHS)
-    num_train_steps = len(train_data_loader) * EPOCHS
-    num_warmup_steps = int(num_train_steps * WARMUP_PROPORTION)
+    num_train_steps = len(train_data_loader) * TRIPPY_config.epochs
+    num_warmup_steps = int(num_train_steps * TRIPPY_config.warmup_proportion)
 
-    optimizer = AdamW(optimizer_parameters, lr=LR, eps=ADAM_EPSILON)
+    optimizer = AdamW(optimizer_parameters, lr=LR, eps=TRIPPY_config.adam_epsilon)
     scheduler = get_linear_schedule_with_warmup(
         optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=num_train_steps
     )
 
     best_joint = -1
-    for epoch in range(EPOCHS):
+    for epoch in range(TRIPPY_config.epochs):
         print(f'\nEpoch: {epoch} ---------------------------------------------------------------')
         print('Training the model...')
-        train(train_data_loader, model, optimizer, device, scheduler, n_slots, IGNORE_IDX)
+        train(train_data_loader, model, optimizer, device, scheduler, n_slots, TRIPPY_config.ignore_index, TRIPPY_config.oper2id)
         print('Evaluating the model on dev set...')
         # jaccard_score, macro_f1_score, all_f1_score = eval_f1_jac(dev_data_loader, model, device, n_slots)
         # joint_goal_acc, states, sentences, indices = eval_joint(dev_raw_data, dev_data, model, device, n_slots, slot_list, label_maps)
-        joint_goal_acc, per_slot_acc, macro_f1_score, all_f1_score = eval(dev_raw_data, dev_data, model, device, n_slots, slot_list, label_maps)
+        joint_goal_acc, per_slot_acc, macro_f1_score, all_f1_score = eval(dev_raw_data, dev_data, model, device, n_slots, slot_list, label_maps, TRIPPY_config.oper2id)
         # print(f'Joint Goal Acc: {joint_goal_acc}, Jaccard Score: {jaccard_score}, Macro F1 Score: {macro_f1_score}')
         print(f'Joint Goal Acc: {joint_goal_acc}')
         print(f'Per Slot Acc: {per_slot_acc}')
@@ -83,7 +82,7 @@ def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, 
     print('Loading best model on dev set...')
     model.load_state_dict(torch.load(model_path))
     print('Evaluating the model on test set...')
-    joint_goal_acc, per_slot_acc, macro_f1_score, all_f1_score = eval(test_raw_data, test_data, model, device, n_slots, slot_list, label_maps)
+    joint_goal_acc, per_slot_acc, macro_f1_score, all_f1_score = eval(test_raw_data, test_data, model, device, n_slots, slot_list, label_maps, TRIPPY_config.oper2id)
     print(f'Joint Goal Acc: {joint_goal_acc}')
     print(f'Per Slot Acc: {per_slot_acc}')
     print(f'Macro F1 Score: {macro_f1_score}')

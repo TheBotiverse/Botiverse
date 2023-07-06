@@ -1,7 +1,8 @@
 import re
 import string
 import numpy as np
-from botiverse.TODS.DNN_DST.config import *
+
+from botiverse.models.TRIPPY.config import MULTIWOZ
 
 
 class RawDataInstance():

@@ -3,9 +3,7 @@ import torch
 import numpy as np
 import re
 
-from botiverse.TODS.DNN_DST.utils import RawDataInstance, DataInstance, normalize, is_included, included_with_label_maps, match_with_label_maps, mask_utterance
-from botiverse.TODS.DNN_DST.config import *
-
+from botiverse.models.TRIPPY.utils import RawDataInstance, DataInstance, normalize, is_included, included_with_label_maps, match_with_label_maps, mask_utterance
 
 def get_ontology_label_maps(ontology_path, label_maps_path, domains):
   # read ontology

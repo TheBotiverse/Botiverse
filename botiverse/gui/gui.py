@@ -15,10 +15,12 @@ class chat_gui:
         self.root.resizable(True, False)
         
         # Create the chat display area
-        self.chat_display = scrolledtext.ScrolledText(self.root, width=40, height=30, state='disabled', bg='#1d1d1d', fg='#1d1d1d')
+        self.chat_display = scrolledtext.ScrolledText(self.root, width=40, height=20, state='disabled', bg='#1d1d1d', fg='#1d1d1d')
         self.chat_display.configure(state='disabled', borderwidth=0)
         self.chat_display.configure(highlightthickness=0, relief='flat')
                 
+        # reduce chat display font
+        # self.chat_display.configure(font=("Avenir", 12))
 
         # Create the input area
         self.input_entry = tk.Entry(self.root, width=30, bg='#505050', fg='#ffffff')
@@ -26,16 +28,16 @@ class chat_gui:
         # remove border form input
         self.input_entry.configure(highlightthickness=0, relief='flat')
         # increase height of input area
-        self.input_entry.configure(font=("Avenir", 15))
+        # self.input_entry.configure(font=("Avenir", 12))
         
         # Create the send button
         self.send_button = tk.Button(self.root, text="Send", command=self.process_input, width=10)
         # make button grey
-        self.send_button.configure(bg='#505050', fg='#1d1d1d', activebackground='#1d1d1d', activeforeground='#1d1d1d', background='#1d1d1d', foreground='#1d1d1d')
+        self.send_button.configure(bg='#505050', fg='#ffffff', activebackground='#1d1d1d', activeforeground='#ffffff', background='#1d1d1d', foreground='#ffffff')
         # remove border from button
         #self.send_button.configure(highlightthickness=0, relief='flat')
         # set font
-        self.send_button.configure(font=("Avenir", 18))
+        # self.send_button.configure(font=("Avenir", 15))
         # remove send button 
         self.send_button.pack_forget()
 

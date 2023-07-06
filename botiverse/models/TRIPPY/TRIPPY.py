@@ -2,12 +2,14 @@ import torch
 import torch.nn as nn
 from transformers import BertModel
 
-from botiverse.TODS.DNN_DST.BERT_from_scratch import Bert, LoadPretrainedWeights
+from botiverse.models.BERT.BERT import Bert
+from botiverse.models.BERT.config import BERTConfig
+from botiverse.models.BERT.utils import LoadPretrainedWeights
 
-class DSTModel(nn.Module):
+class TRIPPY(nn.Module):
 
-  def __init__(self, n_slots, hid_dim, n_oper, dropout, from_scratch):
-    super(DSTModel, self).__init__()
+  def __init__(self, n_slots, hid_dim, n_oper, dropout, from_scratch, BERT_config=BERTConfig()):
+    super(TRIPPY, self).__init__()
 
     self.hid_dim = hid_dim
     self.n_oper = n_oper
@@ -15,7 +17,7 @@ class DSTModel(nn.Module):
 
     if from_scratch == True:
         # Build a BERT model from scratch
-        self.bert = Bert()
+        self.bert = Bert(BERT_config)
         LoadPretrainedWeights(self.bert)
     else:
         self.bert = BertModel.from_pretrained('bert-base-uncased')

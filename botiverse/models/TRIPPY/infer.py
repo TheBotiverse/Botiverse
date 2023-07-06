@@ -1,11 +1,10 @@
 import torch
 
-from botiverse.TODS.DNN_DST.data import create_inputs
-from botiverse.TODS.DNN_DST.utils import create_span_output
-from botiverse.TODS.DNN_DST.config import *
+from botiverse.models.TRIPPY.data import create_inputs
+from botiverse.models.TRIPPY.utils import create_span_output
 
 
-def infer(model, slot_list, current_state, history, sys_utter, user_utter, inform_mem, device):
+def infer(model, slot_list, current_state, history, sys_utter, user_utter, inform_mem, device, oper2id, tokenizer, max_len):
 
   model.eval()
 
@@ -13,8 +12,8 @@ def infer(model, slot_list, current_state, history, sys_utter, user_utter, infor
   input, ids, mask, token_type_ids, tok_input_offsets, input_tokens, padding_len = create_inputs(history,
                                                                                                  user_utter,
                                                                                                  sys_utter,
-                                                                                                 TOKENIZER,
-                                                                                                 MAX_LEN)
+                                                                                                 tokenizer,
+                                                                                                 max_len)
 
 
   # print(input, ids, mask, token_type_ids, tok_input_offsets, input_tokens, padding_len)
@@ -58,24 +57,24 @@ def infer(model, slot_list, current_state, history, sys_utter, user_utter, infor
       # print(slot, torch.softmax(slots_oper_logits[slot_idx][0], dim=-1))
 
       # update the slot based on the operation
-      if pred_oper == OPER2ID['carryover']: # carryover
+      if pred_oper == oper2id['carryover']: # carryover
         continue
-      elif pred_oper == OPER2ID['dontcare']: # dontcare
+      elif pred_oper == oper2id['dontcare']: # dontcare
         pred_state[slot] = 'dontcare'
-      elif pred_oper == OPER2ID['update']: # update
+      elif pred_oper == oper2id['update']: # update
         pred_state[slot] = create_span_output(slots_start_logits[slot_idx][0].cpu().detach().numpy(),
                                               slots_end_logits[slot_idx][0].cpu().detach().numpy(),
                                               padding_len,
                                               input_tokens)
-      elif pred_oper == OPER2ID['refer']: # refer
+      elif pred_oper == oper2id['refer']: # refer
         refered_slot = slots_refer_logits[slot_idx][0].argmax(dim=-1).item()
         if refered_slot != n_slots and slot_list[refered_slot] in current_state:
           pred_state[slot] = current_state[slot_list[refered_slot]]
-      elif pred_oper == OPER2ID['yes']: # yes
+      elif pred_oper == oper2id['yes']: # yes
         pred_state[slot] = 'yes'
-      elif pred_oper == OPER2ID['no']: # no
+      elif pred_oper == oper2id['no']: # no
         pred_state[slot] = 'no'
-      elif pred_oper == OPER2ID['inform']: # inform
+      elif pred_oper == oper2id['inform']: # inform
         if slot in inform_mem:
           pred_state[slot] = '§§' + inform_mem[slot][0]
 

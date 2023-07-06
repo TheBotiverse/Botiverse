@@ -4,8 +4,7 @@ from sklearn.metrics import f1_score
 import copy
 from tqdm import tqdm
 
-from botiverse.TODS.DNN_DST.utils import normalize, is_included, included_with_label_maps, create_span_output
-from botiverse.TODS.DNN_DST.config import *
+from botiverse.models.TRIPPY.utils import normalize, is_included, included_with_label_maps, create_span_output
 
 
 def get_informed_value(value, target, label_maps):
@@ -26,7 +25,7 @@ def get_informed_value(value, target, label_maps):
   return informed_value
 
 
-def eval(raw_data, data, model, device, n_slots, slot_list, label_maps):
+def eval(raw_data, data, model, device, n_slots, slot_list, label_maps, oper2id):
 
   model.eval()
 
@@ -90,27 +89,27 @@ def eval(raw_data, data, model, device, n_slots, slot_list, label_maps):
 
         # keep track of operations for f1 score
         Y_pred.append(pred_oper)
-        Y_true.append(OPER2ID[opers[slot_idx]])
+        Y_true.append(oper2id[opers[slot_idx]])
 
         # update the slot based on the operation
-        if pred_oper == OPER2ID['carryover']: # carryover
+        if pred_oper == oper2id['carryover']: # carryover
           continue
-        elif pred_oper == OPER2ID['dontcare']: # dontcare
+        elif pred_oper == oper2id['dontcare']: # dontcare
           pred_current_state[slot] = 'dontcare'
-        elif pred_oper == OPER2ID['update']: # update
+        elif pred_oper == oper2id['update']: # update
           pred_current_state[slot] = create_span_output(slots_start_logits[slot_idx][0].cpu().detach().numpy(),
                                                         slots_end_logits[slot_idx][0].cpu().detach().numpy(),
                                                         padding_len,
                                                         input_tokens)
-        elif pred_oper == OPER2ID['refer']: # refer
+        elif pred_oper == oper2id['refer']: # refer
           refered_slot = slots_refer_logits[slot_idx][0].argmax(dim=-1).item()
           if refered_slot != n_slots and slot_list[refered_slot] in pred_last_state:
             pred_current_state[slot] = pred_last_state[slot_list[refered_slot]]
-        elif pred_oper == OPER2ID['yes']: # yes
+        elif pred_oper == oper2id['yes']: # yes
           pred_current_state[slot] = 'yes'
-        elif pred_oper == OPER2ID['no']: # no
+        elif pred_oper == oper2id['no']: # no
           pred_current_state[slot] = 'no'
-        elif pred_oper == OPER2ID['inform']: # inform
+        elif pred_oper == oper2id['inform']: # inform
           if slot in inform_mem:
             pred_current_state[slot] = '§§' + inform_mem[slot][0]
 

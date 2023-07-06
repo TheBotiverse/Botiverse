@@ -1,23 +1,24 @@
 import torch
 from collections import OrderedDict
 
-from botiverse.TODS.DNN_DST.utils import normalize, mask_utterance
-from botiverse.TODS.DNN_DST.data import get_ontology_label_maps, prepare_data, Dataset
-from botiverse.TODS.DNN_DST.model import DSTModel
-from botiverse.TODS.DNN_DST.run import run
-from botiverse.TODS.DNN_DST.infer import infer
-from botiverse.TODS.DNN_DST.config import *
+from botiverse.models.TRIPPY.utils import normalize, mask_utterance
+from botiverse.models.TRIPPY.data import get_ontology_label_maps, prepare_data, Dataset
+from botiverse.models.TRIPPY.run import run
+from botiverse.models.TRIPPY.infer import infer
+from botiverse.models.TRIPPY.config import TRIPPYConfig
+from botiverse.models.TRIPPY.TRIPPY import TRIPPY
 
 
-class DNNDST:
+class TRIPPYDST:
 
-    def __init__(self, domains, ontology_path, label_maps_path, non_referable_slots, non_referable_pairs, from_scratch):
+    def __init__(self, domains, ontology_path, label_maps_path, non_referable_slots, non_referable_pairs, from_scratch, TRIPPY_config=TRIPPYConfig()):
         self.domains = domains
         self.ontology_path = ontology_path
         self.label_maps_path = label_maps_path
         self.non_referable_slots = non_referable_slots
         self.non_referable_pairs = non_referable_pairs
         self.from_scratch = from_scratch
+        self.TRIPPY_config = TRIPPY_config
 
         slot_list, label_maps = get_ontology_label_maps(ontology_path, label_maps_path, domains)
         self.slot_list = slot_list
@@ -25,7 +26,7 @@ class DNNDST:
         self.label_maps = label_maps
         self.state = {}
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = DSTModel(len(slot_list), HID_DIM, N_OPER, DROPOUT, from_scratch).to(self.device)
+        self.model = TRIPPY(len(slot_list), TRIPPY_config.hid_dim, TRIPPY_config.n_oper, TRIPPY_config.dropout, from_scratch).to(self.device)
         self.history = []
 
     def load_model(self, model_path, test_path):
@@ -59,12 +60,12 @@ class DNNDST:
       print('Model loaded successfully.')
       if test_path is not None:
         print('Preprocessing the data...')
-        test_raw_data, test_data = prepare_data(test_path, self.slot_list, self.label_maps, TOKENIZER, MAX_LEN, self.domains, self.non_referable_slots, self.non_referable_pairs)
-        test_dataset = Dataset(test_data, self.n_slots, OPER2ID, self.slot_list)
+        test_raw_data, test_data = prepare_data(test_path, self.slot_list, self.label_maps, self.TRIPPY_config.tokenizer, self.TRIPPY_config.max_len, self.domains, self.non_referable_slots, self.non_referable_pairs)
+        test_dataset = Dataset(test_data, self.n_slots, self.TRIPPY_config.oper2id, self.slot_list)
         test_data_loader = torch.utils.data.DataLoader(test_dataset,
                                                        batch_size=TEST_BATCH_SIZE)
         print('Evaluating the model on the data...')
-        joint_goal_acc, per_slot_acc, macro_f1_score, all_f1_score = eval(test_raw_data, test_data, self.model, self.device, self.n_slots, self.slot_list, self.label_maps)
+        joint_goal_acc, per_slot_acc, macro_f1_score, all_f1_score = eval(test_raw_data, test_data, self.model, self.device, self.n_slots, self.slot_list, self.label_maps, self.TRIPPY_config.oper2id)
         print(f'Joint Goal Acc: {joint_goal_acc}')
         print(f'Per Slot Acc: {per_slot_acc}')
         print(f'Macro F1 Score: {macro_f1_score}')
@@ -81,7 +82,7 @@ class DNNDST:
       # delex the system utterance
       sys_utter = ' '.join(mask_utterance(sys_utter, inform_mem, '[UNK]'))
 
-      self.state = infer(self.model, self.slot_list, self.state, self.history, sys_utter, user_utter, inform_mem, self.device)
+      self.state = infer(self.model, self.slot_list, self.state, self.history, sys_utter, user_utter, inform_mem, self.device, self.TRIPPY_config.oper2id, self.TRIPPY_config.tokenizer, self.TRIPPY_config.max_len)
       self.history = [user_utter, sys_utter] + self.history
       return self.state.copy()
 

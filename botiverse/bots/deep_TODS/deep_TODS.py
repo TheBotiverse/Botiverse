@@ -1,9 +1,10 @@
-from botiverse.TODS.utils2 import RandomDP, PriorityDP, TemplateBasedNLG
-from botiverse.TODS.DNN_DST.DNN_DST import DNNDST
+from botiverse.bots.deep_TODS.utils import RandomDP, PriorityDP, TemplateBasedNLG
+from botiverse.models.TRIPPY.config import TRIPPYConfig
+from botiverse.models.TRIPPY.TRIPPY_DST import TRIPPYDST
 
 import random
 
-class DNNTODS:
+class DeepTODS:
 
     def __init__(self, name, domains, ontology_path, label_maps_path, policy, start, templates, non_referable_slots=[], non_referable_pairs=[], from_scratch=False):
         self.name = name
@@ -11,7 +12,7 @@ class DNNTODS:
         self.policy = policy
         self.start = start
         self.is_start = True
-        self.dst = DNNDST(domains, ontology_path, label_maps_path, non_referable_slots, non_referable_pairs, from_scratch)
+        self.dst = TRIPPYDST(domains, ontology_path, label_maps_path, non_referable_slots, non_referable_pairs, from_scratch)
         self.dpo = RandomDP() if policy == 'Random' else PriorityDP() if policy == 'Priority' else None
         self.nlg = TemplateBasedNLG(templates)
         self.sys_utter = ''
