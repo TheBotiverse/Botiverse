@@ -27,7 +27,7 @@
 # 
 # 
 
-# In[2]:
+# In[5]:
 
 
 import torch
@@ -36,6 +36,7 @@ from torch import sigmoid, tanh as σ, tanh
 from torch.autograd import Variable
 import numpy as np
 from tqdm import tqdm
+import os
 
 class LSTMCell(nn.Module): 
     '''
@@ -90,7 +91,7 @@ class LSTMCell(nn.Module):
 # 
 # Given an input sequence, each token passes by all the layers and each layer has its own hidden state and cell state which is its output due to the previous token.
 
-# In[3]:
+# In[6]:
 
 
 class LSTMX(nn.Module):
@@ -154,7 +155,7 @@ class LSTMX(nn.Module):
         return outs[-1]
 
 
-# In[4]:
+# In[7]:
 
 
 class LSTMClassifier(nn.Module):
@@ -169,41 +170,103 @@ class LSTMClassifier(nn.Module):
         self.criterion = nn.CrossEntropyLoss()
 
     def forward(self, x):
+        '''
+        Forward pass of the LSTMClassifier which takes the input and passes it through all the LSTM layers and an output layer to produce an output.
+        :param x: The input to the LSTMClassifier which is of shape (batch_size, seq_len, input_size)
+        :return: The output of the LSTMClassifier which is of shape (batch_size, num_classes)
+        '''
         out = self.lstm(x)
         out = self.fc(out)
         return out
     
-    def fit(self, X, y, hidden_size=64, λ=0.001, num_epochs=100, val_size=0.0):
+    
+    def fit(self, X, y, λ=0.001, α=1e-3, max_epochs=100, patience=5, val_ratio=0.2):
+        '''
+        Fit the LSTMClassifier to the given data.
+        :param X: The input data of shape (batch_size, seq_len, input_size)
+        :param y: The labels of the data of shape (batch_size)
+        :param hidden_size: The size of the hidden state of the LSTM layer (default: 64)
+        :param λ: The learning rate (default: 0.001)
+        :param num_epochs: The number of epochs to train the model for (default: 100)
+        '''
         Xt = torch.from_numpy(X)
         yt = torch.from_numpy(y)
+        if val_ratio:
+            indices = torch.randperm(len(Xt))
+            Xt, yt = Xt[indices], yt[indices]
+            # split the data into train and validation sets
+            val_size = int(val_ratio * len(Xt))
+            Xt, Xv = Xt[:-val_size], Xt[-val_size:]
+            yt, yv = yt[:-val_size], yt[-val_size:]
         
-        optimizer = torch.optim.Adam(self.parameters(), lr=λ)
-        pbar = tqdm(range(num_epochs))
+                
+        optimizer = torch.optim.Adam(self.parameters(), lr=λ, weight_decay=α)
+        print("Training the LSTMClassifier...")
+        curr_dir = os.path.dirname(os.path.realpath(__file__))
+        bad_epochs = 0
+        val_accuracy = 0
+        val_loss = 0
+        best_loss = np.inf
+        pbar = tqdm(range(max_epochs))
         for epoch in pbar:
             outputs = self(Xt)
             loss = self.criterion(outputs.squeeze(), yt)
-            pbar.set_description(f"Epoch {epoch+1}/{num_epochs}, Loss: {loss.item()}")
+            pbar.set_description(f"Epoch {epoch+1}/{max_epochs}, Loss: {loss.item()}")
             
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            if val_ratio:
+                # randomly shuffle the data
+                val_accuracy = self.evaluate(Xv, yv)
+                with torch.no_grad():
+                    val_loss = self.criterion(self(Xv).squeeze(), yv)
+                if val_loss < best_loss:
+                    best_loss = val_loss
+                    bad_epochs = 0
+                    # save the model
+                    torch.save(self.state_dict(), os.path.join(curr_dir, "LSTMClassifier.pt"))
+                else:
+                    bad_epochs += 1
+                    if bad_epochs == patience:
+                        print(f"{patience} epochs have passed without improvement. Early stopping...")
+                        self.load_state_dict(torch.load(os.path.join(curr_dir, "LSTMClassifier.pt")))
+                        break
+                # every 5 epochs see
+                pbar.set_postfix({"Validation Accuracy": val_accuracy})             
+           
 
     def predict(self, X):
+        '''
+        Predict the labels of the given data by passing it through the LSTMClassifier.
+        :param X: The input data of shape (batch_size, seq_len, input_size)
+        :return: The predicted labels of the data of shape (batch_size)
+        '''
         Xt = torch.from_numpy(X)
         outputs = self(Xt)
-        outputs = torch.argmax(outputs, dim=1)
-        return outputs.detach().numpy()
+        pred = torch.argmax(outputs, dim=1)
+        softmax = nn.Softmax(dim=1)
+        prob = torch.max(softmax(outputs), dim=1)
+        return pred.detach().numpy(), prob.values.detach().numpy()
     
-    def evaluate(self, X, y):
-        Xt = torch.from_numpy(X)
-        yt = torch.from_numpy(y)
+    def evaluate(self, Xt, yt):
+        '''
+        Evaluate the LSTMClassifier on the given data.
+        :param X: The input data of shape (batch_size, seq_len, input_size)
+        :param y: The labels of the data of shape (batch_size)
+        :return: The accuracy of the LSTMClassifier on the given data
+        '''
+        # check ig they are torch tensors
+        if not isinstance(Xt, torch.Tensor) or not isinstance(yt, torch.Tensor):
+            Xt = torch.from_numpy(Xt)
+            yt = torch.from_numpy(yt)
         outputs = self(Xt)
         outputs = torch.argmax(outputs, dim=1)
         # compute the accuracy
         return (outputs == yt).sum().item() / len(yt)
 
 
-# In[5]:
+# In[8]:
 
 
 # if running from notebook

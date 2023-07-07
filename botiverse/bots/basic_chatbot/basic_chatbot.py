@@ -7,8 +7,12 @@ from botiverse.preprocessors import GloVe, TF_IDF, TF_IDF_GLOVE
 from nltk.stem.porter import PorterStemmer
 stemmer = PorterStemmer()
 
-class basic_chatbot:
 
+class basic_chatbot:
+    '''
+    An interface for a basic chatbot model suitable for small datasets such as FAQs. Note that the
+    underlying model is not sequential (either an NN or an SVM).
+    '''
     def __init__(self, machine='NN', repr='tf-idf'):
         """
         Instantiate a basic chat bot model that uses a classic feedforward neural network.
@@ -60,7 +64,7 @@ class basic_chatbot:
         
         self.all_words = all_words
         self.classes = classes
-
+        
         X = self.transformer.transform_list(sentence_list, all_words=all_words)
 
         # convert each class to its index
