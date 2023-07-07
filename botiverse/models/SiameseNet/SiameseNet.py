@@ -6,55 +6,6 @@ import torch.nn as nn
 import numpy as np
 from tqdm import tqdm
 
-# TODO: Modularize this code
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-def plot_pca_umap(x_train_e, y_train_e, x_val_e=None, y_val_e=None):
-    pca = PCA(n_components=2)
-    umap = UMAP(n_components=2, n_neighbors=10, random_state=42, min_dist=0.3)
-
-    x_train_pca = pca.fit_transform(x_train_e)
-    x_train_umap = umap.fit_transform(x_train_e)
-
-    is_val = x_val_e is not None and y_val_e is not None
-    if is_val:
-        x_val_pca = pca.transform(x_val_e)
-        x_val_umap = umap.transform(x_val_e)
-
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 5))
-
-    # Plot PCA on Embeddings
-    scatter1 = ax1.scatter(x_train_pca[:, 0], x_train_pca[:, 1], c=y_train_e, cmap='tab20c', s=20)
-    if is_val:
-        ax1.scatter(x_val_pca[:, 0], x_val_pca[:, 1], c=y_val_e, cmap='tab20c', marker='s', s=20)
-    ax1.set_title("PCA on Embeddings")
-
-    # Add legend for PCA
-    legend1 = ax1.legend(*scatter1.legend_elements(), title="Classes", loc='center left', bbox_to_anchor=(1.02, 0.5))
-    ax1.add_artist(legend1)
-
-    # Calculate information lost in PCA
-    pca_info_loss = (1 - sum(pca.explained_variance_ratio_)) * 100
-    ax1.text(0.95, 0.05, f"Info Loss: {pca_info_loss:.2f}%", transform=ax1.transAxes, ha="right")
-
-    # Plot UMAP on Embeddings
-    scatter2 = ax2.scatter(x_train_umap[:, 0], x_train_umap[:, 1], c=y_train_e, cmap='tab20c', s=20)
-    if is_val:
-        ax2.scatter(x_val_umap[:, 0], x_val_umap[:, 1], c=y_val_e, cmap='tab20c', marker='s', s=20)
-    ax2.set_title("UMAP on Embeddings")
-
-    # Add legend for UMAP at the bottom
-    legend2 = ax2.legend(*scatter2.legend_elements(), title="Classes", loc='center left', bbox_to_anchor=(1.02, 0.5))
-    ax2.add_artist(legend2)
-
-    plt.subplots_adjust(right=0.85)  # Adjust the right margin to make space for the legend
-
-    plt.show()
-    
-    
-    
-    
 
 class TripletLoss(nn.Module):
     def __init__(self, margin, γ):
@@ -171,3 +122,48 @@ def get_embeddings(model, loader):
 
 
 # add final predict function (SVM)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+def plot_pca_umap(x_train_e, y_train_e, x_val_e=None, y_val_e=None):
+    pca = PCA(n_components=2)
+    umap = UMAP(n_components=2, n_neighbors=10, random_state=42, min_dist=0.3)
+
+    x_train_pca = pca.fit_transform(x_train_e)
+    x_train_umap = umap.fit_transform(x_train_e)
+
+    is_val = x_val_e is not None and y_val_e is not None
+    if is_val:
+        x_val_pca = pca.transform(x_val_e)
+        x_val_umap = umap.transform(x_val_e)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 5))
+
+    # Plot PCA on Embeddings
+    scatter1 = ax1.scatter(x_train_pca[:, 0], x_train_pca[:, 1], c=y_train_e, cmap='tab20c', s=20)
+    if is_val:
+        ax1.scatter(x_val_pca[:, 0], x_val_pca[:, 1], c=y_val_e, cmap='tab20c', marker='s', s=20)
+    ax1.set_title("PCA on Embeddings")
+
+    # Add legend for PCA
+    legend1 = ax1.legend(*scatter1.legend_elements(), title="Classes", loc='center left', bbox_to_anchor=(1.02, 0.5))
+    ax1.add_artist(legend1)
+
+    # Calculate information lost in PCA
+    pca_info_loss = (1 - sum(pca.explained_variance_ratio_)) * 100
+    ax1.text(0.95, 0.05, f"Info Loss: {pca_info_loss:.2f}%", transform=ax1.transAxes, ha="right")
+
+    # Plot UMAP on Embeddings
+    scatter2 = ax2.scatter(x_train_umap[:, 0], x_train_umap[:, 1], c=y_train_e, cmap='tab20c', s=20)
+    if is_val:
+        ax2.scatter(x_val_umap[:, 0], x_val_umap[:, 1], c=y_val_e, cmap='tab20c', marker='s', s=20)
+    ax2.set_title("UMAP on Embeddings")
+
+    # Add legend for UMAP at the bottom
+    legend2 = ax2.legend(*scatter2.legend_elements(), title="Classes", loc='center left', bbox_to_anchor=(1.02, 0.5))
+    ax2.add_artist(legend2)
+
+    plt.subplots_adjust(right=0.85)  # Adjust the right margin to make space for the legend
+
+    plt.show()
+    

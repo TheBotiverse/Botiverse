@@ -5,7 +5,7 @@
 # 
 # In this notebook, we shall demonstrate implementing multiclass SVM from scratch using the dual formulation and quadratic programming.
 
-# In[64]:
+# In[2]:
 
 
 '''
@@ -17,11 +17,12 @@ import cvxopt
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_classification
 import copy
+import pickle
 
 
 # ### SVM Class
 
-# In[65]:
+# In[3]:
 
 
 class SVM:
@@ -101,7 +102,7 @@ SVMClass = lambda func: setattr(SVM, func.__name__, func) or func
 # <br>
 # $ h = \begin{bmatrix} 0 \\ C \end{bmatrix} $
 
-# In[66]:
+# In[4]:
 
 
 @SVMClass
@@ -156,7 +157,7 @@ def fit(self, X, y, eval_train=False):
 
 # In this, we train $K$ binary classifiers, where $K$ is the number of classes where each classifier perceives one class as +1 and all other classes as -1.
 
-# In[67]:
+# In[5]:
 
 
 @SVMClass
@@ -192,7 +193,7 @@ def multi_fit(self, X, y, eval_train=False):
 # 
 # 
 
-# In[68]:
+# In[6]:
 
 
 @SVMClass
@@ -229,7 +230,7 @@ def evaluate(self, X,y):
 
 # Each classifier compute the score of a class against all other classes. The class with the highest score is the predicted class.
 
-# In[69]:
+# In[7]:
 
 
 @SVMClass
@@ -252,9 +253,36 @@ def multi_predict(self, X):
     return np.argmax(preds, axis=1), np.max(preds, axis=1)
 
 
+# #### Saving and Loading
+
+# In[8]:
+
+
+@SVMClass
+def save(self, path):
+    '''
+    Save the model to the given path.
+    :param path: The path to save the model to.
+    '''
+    with open(path, 'wb') as f:
+        pickle.dump(self, f)
+        
+
+@staticmethod
+@SVMClass
+def load(path):
+    '''
+    load the model from the given path.
+    :param path: The path to load the model from.
+    '''
+    with open(path, 'rb') as f:
+        return pickle.load(f)
+        
+
+
 # ### Example
 
-# In[70]:
+# In[9]:
 
 
 # if running from notebook

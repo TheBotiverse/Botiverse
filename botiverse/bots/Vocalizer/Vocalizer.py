@@ -90,11 +90,18 @@ class SpeechClassifier():
         self.words = words
         self.samplerate = samplerate
         self.duration = duration
-        V = Vocalize(words)
-        Vocalize.corrupt_dataset(words)
-        
         self.transformer = Wav2Vec(samplerate, duration)
-        self.X, self.y = self.transformer.transform_list(words, n=10)
+        
+
+    def generate_data(self, n=10, force_download=False):
+        '''
+        Generate audio data for the words specified during init.
+        :param n: The number of audio files to generate for each word.
+        '''
+        V = Vocalize(self.words)
+        Vocalize.corrupt_dataset(self.words, sample_rate=self.samplerate, force_download=force_download)
+        self.X, self.y = self.transformer.transform_list(self.words, n=10)
+
 
     def fit(self,  λ=0.001, α=0.01, patience=50, max_epochs=600):
         '''
@@ -106,6 +113,21 @@ class SpeechClassifier():
         '''
         self.model = LSTMClassifier(self.X.shape[2], 128, len(self.words))
         self.model.fit(self.X, self.y,  λ, α, max_epochs, patience)
+    
+    def save(self, path):
+        '''
+        Save the model to a file.
+        :param path: The path to the file
+        '''
+        self.model.save(path+'.bot')
+    
+    def load(self, path):
+        '''
+        Load the model from a file.
+        :param path: The path to the file
+        '''
+        self.model.load(path + '.bot')
+        
     
     def predict(self, path, index=False):
         '''

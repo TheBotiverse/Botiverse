@@ -24,3 +24,8 @@ examples/DNN_DST_example/sim-R_demo/model.pt
 botiverse.egg-info/PKG-INFO
 botiverse/models/FastSpeech1/weights.pth
 *.wav
+*.pkl
+botiverse/preprocessors/Vocalize/__MACOSX/._noises
+*.DS_Store
+*.pth
+*.bot

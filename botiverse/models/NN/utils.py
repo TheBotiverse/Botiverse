@@ -5,6 +5,10 @@ def split_data(X,y, val_ratio):
     Split the data into training and validation sets.
     '''
     N = X.shape[0]
+    # randomly shuffle the data with numpy's permutation function.
+    index = np.random.permutation(N)
+    X, y = X[index], y[index]
+    # split
     V = int(N * val_ratio)
     X_t, y_t = X[:N - V], y[:N - V]
     X_v, y_v = X[N - V:], y[N - V:]

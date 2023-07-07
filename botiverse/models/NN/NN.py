@@ -4,7 +4,7 @@
 # # <font color="cyan">Feedforward Neural Network </font> From Scratch Implementation
 # In this notebook, we will implement a feedforward neural network with arbitrary structure, loss and activations. You can find a full tutorial on this notebook [here](hhttps://medium.com/towards-data-science/backpropagation-the-natural-proof-946c5abf63b1).
 
-# In[1]:
+# In[193]:
 
 
 '''
@@ -18,11 +18,12 @@ except:
 from tqdm import tqdm
 import numpy as np
 import copy 
+import pickle
 
 
 # ### Define the Architecture
 
-# In[2]:
+# In[194]:
 
 
 class NeuralNet():
@@ -42,13 +43,17 @@ class NeuralNet():
         self.activation = activation
         self.optimizer = optimizer
         if activation == 'sigmoid':
-            self.σ = lambda z: 1.0/(1.0+np.exp(-z))                             #activation function
-            self.σࠤ = lambda z: self.σ(z)*(1-self.σ(z))                          #derivative of the activation function
+            def σ(z): return 1.0/(1.0+np.exp(-z))                   # activation function
+            def σࠤ(z): return σ(z)*(1-σ(z))                         # derivative of the activation function
+     
         elif activation == 'relu':
-            self.σ = lambda z: np.maximum(0, z)
-            self.σࠤ = lambda z: np.greater(z, 0).astype(int)
+            def σ(z): return np.maximum(0, z)
+            def σࠤ(z): return np.greater(z, 0).astype(int)
+        self.h = σ
+        self.dh = σࠤ   
         
-        self.softmax = lambda z: np.exp(z-np.max(z))/np.sum(np.exp(z-np.max(z)), axis=0) #softmax function
+        def softmax(z): return np.exp(z-np.max(z))/np.sum(np.exp(z-np.max(z)), axis=0)
+        self.g = softmax
         
         ### Parameters
         # Xaiver initialization
@@ -58,15 +63,19 @@ class NeuralNet():
         self.Wₙ = [np.random.randn(l, next_l) * np.sqrt(2/l) for l, next_l in zip(structure[:-1], structure[1:])]
         
         ### Loss
-        self.J = lambda aᴺ, y: -np.sum(y * np.log(aᴺ)) / aᴺ.shape[1]        #cost function (not directly used)
-        self.ᐁJ = lambda aᴺ, y: (aᴺ-y)                                      #derivative of the cost function 
+        def cross_entropy(aᴺ, y): return -np.sum(y * np.log(aᴺ)) / aᴺ.shape[1]
+        def cross_entropyࠤ(aᴺ, y): return (aᴺ-y)
+        self.J = cross_entropy
+        self.ᐁJ = cross_entropyࠤ
 
+        ### Misc
+        self.optimal_epochs = None
 NNClass = lambda func: setattr(NeuralNet, func.__name__, func) or func
 
 
 # ### Backpropagation
 
-# In[3]:
+# In[195]:
 
 
 @NNClass
@@ -77,7 +86,7 @@ def backprop(self, xₛ , yₛ ):
     :param yₛ: The output vector of shape (K, 1).
     :return: A tuple of lists (მJⳆმBₙₛ, მJⳆმWₙₛ) where მJⳆმBₙₛ is a list of the gradients of the loss function with respect to the biases and მJⳆმWₙₛ is a list of the gradients of the loss function with respect to the weights.
     '''
-    σ, σࠤ, ᐁJ, softmax= self.σ, self.σࠤ, self.ᐁJ, self.softmax
+    h, dh, ᐁJ, g = self.h, self.dh, self.ᐁJ, self.g
 
     მJⳆმBₙₛ = [np.zeros(b.shape) for b in self.Bₙ]
     მJⳆმWₙₛ = [np.zeros(W.shape) for W in self.Wₙ]
@@ -88,7 +97,7 @@ def backprop(self, xₛ , yₛ ):
 
     for i, (b, W) in enumerate(zip(self.Bₙ, self.Wₙ)):
         z = W.T @ a + b if Zₙ else W.T @ xₛ  + b
-        a = σ(z) if i != self.num_layers-2 else softmax(z)
+        a = h(z) if i != self.num_layers-2 else g(z)
         Zₙ.append(z)
         Aₙ.append(a)
 
@@ -97,7 +106,7 @@ def backprop(self, xₛ , yₛ ):
     # backward pass (computing δ and consequently მJⳆმBₙₛ and მJⳆმWₙₛ layer by layer )
     H = self.num_layers-2
     for L in range(H, -1, -1):
-        δ =  σࠤ(Zₙ[L]) * (self.Wₙ[L+1] @ δ) if L != H else ᐁJ(Aₙ[L], yₛ ) 
+        δ =  dh(Zₙ[L]) * (self.Wₙ[L+1] @ δ) if L != H else ᐁJ(Aₙ[L], yₛ ) 
         მJⳆმBₙₛ[L] = δ
         მJⳆმWₙₛ[L] = Aₙ[L-1] @ δ.T  if L != 0 else xₛ  @ δ.T
     
@@ -106,7 +115,7 @@ def backprop(self, xₛ , yₛ ):
 
 # ### Gradient Descent
 
-# In[4]:
+# In[196]:
 
 
 @NNClass
@@ -132,7 +141,7 @@ def SGD(self, x_batch, y_batch, λ, α=0.01):
     self.Bₙ = [(1 - λ * α / d) * b - λ / d * მJⳆმb / np.linalg.norm(მJⳆმb) for b, მJⳆმb in zip(self.Bₙ, მJⳆმBₙ)]
 
 
-# In[5]:
+# In[197]:
 
 
 @NNClass
@@ -168,12 +177,12 @@ def ADAM(self, x_batch, y_batch, λ, α=0.01, beta1=0.9, beta2=0.999, epsilon=1e
 
 # ### Feedforward
 
-# In[6]:
+# In[198]:
 
 
 @NNClass
 def feedforward(self, x ):
-    σ, softmax = self.σ, self.softmax
+    h, g = self.h, self.g
     '''
     The forward pass of the network. Given an input x this will return the output of the network.
     :param x: The input vector of shape (d, 1) where d is the number of input features.
@@ -182,18 +191,18 @@ def feedforward(self, x ):
     a = x
     for i, (b, W) in enumerate(zip(self.Bₙ, self.Wₙ)):
         z = W.T @ a + b
-        a = σ(z) if i != self.num_layers-2 else softmax(z)
+        a = h(z) if i != self.num_layers-2 else g(z)
     ŷ = a
     return ŷ 
 
 
 # ### Training Method
 
-# In[7]:
+# In[199]:
 
 
 @NNClass
-def fit(self, X, y, batch_size=32, epochs=100, λ=30, α=0.01, optimizer='ADAM', val_split=0.0, eval_train=False):
+def fit(self, X, y, batch_size=32, epochs=200, λ=30, α=0.01, optimizer='ADAM', val_split=0.0, patience=50, eval_train=False):
     '''
     For each epoch, go over each minibatch and perform a gradient descent update accordingly and evaluate the model on the training and validation sets if needed.
     :param X: The training data arranged as a float numpy array of shape (N, d)
@@ -213,23 +222,46 @@ def fit(self, X, y, batch_size=32, epochs=100, λ=30, α=0.01, optimizer='ADAM',
     Xc, yc = copy.deepcopy(X), copy.deepcopy(y)
     X, y = batchify(X, y, batch_size)
 
+    if self.optimal_epochs is not None:
+        print(f"Using optimal epochs: {self.optimal_epochs} found from an earlier run.")
+        epochs = self.optimal_epochs
+        
+    # training loop
     self.gradient_descent = self.SGD if optimizer == 'SGD' else self.ADAM
     train_acc, val_acc = '', ''
     pbar = tqdm(range(epochs))
-    for j in pbar:
+    best_loss = np.inf
+    val_loss = 0
+    bad_epochs = 0
+    for epoch in pbar:
         for x_batch, y_batch in zip(X, y):
             self.gradient_descent(x_batch, y_batch, λ)          #update the parameters after learning from the mini_batch.
         if eval_train:    
             train_acc = self.evaluate(Xc, yc)
-        if val_split:     
-            val_acc = self.evaluate(X_v, y_v)           
     
+        # update bar
         desc1, desc2 = f"Train Acc: {train_acc}" if eval_train else '', f" | Val Acc: {val_acc}" if val_split else ''
-        desc =  desc1 + desc2
+        desc3 = f" | Val Loss: {val_loss}" if val_split else ''
+        desc =  desc1 + desc2 + desc3
         pbar.set_description(desc)
+        
+        # early stopping
+        if val_split:     
+            val_loss = self.evaluate(X_v, y_v, loss=True)
+            if val_loss <= best_loss:
+                best_loss = val_loss
+                bad_epochs = 0
+            else:
+                bad_epochs += 1
+                if bad_epochs == patience:
+                    print(f"{patience} epochs have passed without improvement. Early stopping... \n")
+                    self.optimal_epochs = epoch - patience + 2
+                    self.optimal_epochs = int(self.optimal_epochs * (1 + val_split))
+                    break
+            val_acc = self.evaluate(X_v, y_v)        
 
 
-# In[8]:
+# In[200]:
 
 
 @NNClass
@@ -243,20 +275,57 @@ def predict(self, X):
     return np.array([np.argmax(self.feedforward(x)) for x in X]), np.array([np.max(self.feedforward(x)) for x in X])
         
 @NNClass
-def evaluate(self, X,y):
+def evaluate(self, X,y, loss=False):
     '''
     Compare the one-hot vector y with the networks output yᴺ and calculate the accuracy.
     :param X: The test data arranged as a float numpy array of shape (N, d)
     :param y: The test labels arranged as a numpy array of shape (N,) where each element is an integer between 0 and k-1
     '''
     if len(X.shape) == 2:   X = X[..., np.newaxis]
-    validation_results = [(np.argmax(self.feedforward(x)), y) for (x, y) in zip(X, y)]   #the index is the number itself
-    accuracy = sum(int(ŷ == y) for (ŷ, y) in validation_results) / len(X)
+    if loss:
+        return np.sum([self.J(self.feedforward(x), y) for x, y in zip(X, y)]) / len(X)
+    else:
+        validation_results = [(np.argmax(self.feedforward(x)), y) for (x, y) in zip(X, y)]   #the index is the number itself
+        accuracy = sum(int(ŷ == y) for (ŷ, y) in validation_results) / len(X)
     
     return round(accuracy, 2)
 
 
-# In[9]:
+# #### Saving and Loading Model
+
+# In[201]:
+
+
+@NNClass
+def save(self, path):
+    '''
+    Save the model to the given path.
+    :param path: The path to save the model to.
+    '''
+    # store self.Bₙ, self.Wₙ, self.structure, self.activation, self.optimizer
+    with open(path, 'wb') as f:
+        # save self.Bₙ, self.Wₙ, self.structure, self.activation, self.optimizer
+        class_dict = {key: value for key, value in self.__dict__.items() if key in ['Bn', 'Wn', 'structure', 'activation', 'optimizer']}
+        f.write(pickle.dumps(class_dict))
+
+@staticmethod        
+@NNClass
+def load(path):
+    '''
+    Load the model from the given path.
+    :param path: The path to load the model from.
+    '''
+    with open(path, 'rb') as f:
+        class_dict = pickle.loads(f.read())
+        model = NeuralNet(class_dict['structure'], class_dict['activation'], class_dict['optimizer'])
+        # now use setattr to set Bₙ and Wₙ
+        for key, value in class_dict.items():
+            if key in ['Bn', 'Wn']:
+                setattr(model, key, value)
+        return model
+
+
+# In[202]:
 
 
 # if running from notebook

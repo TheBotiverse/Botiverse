@@ -27,7 +27,7 @@
 # 
 # 
 
-# In[5]:
+# In[1]:
 
 
 import torch
@@ -91,7 +91,7 @@ class LSTMCell(nn.Module):
 # 
 # Given an input sequence, each token passes by all the layers and each layer has its own hidden state and cell state which is its output due to the previous token.
 
-# In[6]:
+# In[2]:
 
 
 class LSTMX(nn.Module):
@@ -155,7 +155,7 @@ class LSTMX(nn.Module):
         return outs[-1]
 
 
-# In[7]:
+# In[3]:
 
 
 class LSTMClassifier(nn.Module):
@@ -264,9 +264,23 @@ class LSTMClassifier(nn.Module):
         outputs = torch.argmax(outputs, dim=1)
         # compute the accuracy
         return (outputs == yt).sum().item() / len(yt)
+    
+    def save(self, path):
+        '''
+        Save the LSTMClassifier to a file.
+        :param path: The path to the file
+        '''
+        torch.save(self.state_dict(), path)
+    
+    def load(self, path):
+        '''
+        Load the LSTMClassifier from a file.
+        :param path: The path to the file
+        '''
+        self.load_state_dict(torch.load(path))
 
 
-# In[8]:
+# In[4]:
 
 
 # if running from notebook

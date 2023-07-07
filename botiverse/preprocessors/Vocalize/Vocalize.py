@@ -44,7 +44,7 @@ class Vocalize():
                 os.remove(f"dataset/{word}/{i}.mp3")
 
     @staticmethod
-    def corrupt_dataset(words=None, sample_rate=16000, traffic=False):
+    def corrupt_dataset(words=None, sample_rate=16000, traffic=False, force_download=False):
         '''
         Given a folder 'dataset' with folders each containing audio files, this randomly adds noise to each audio file and saves it
         by applying specific noise introduction logic. If noise is not found locally, it is downloaded from Google Drive.
@@ -55,7 +55,8 @@ class Vocalize():
         if words is None: words = os.listdir('dataset')
         
         curr_dir = os.path.dirname(os.path.abspath(__file__))
-        if not os.path.exists(f"{curr_dir}/noises"):
+        # does not exist or is empty
+        if not os.path.exists(f"{curr_dir}/noises") or force_download:
             print("Noises not found. Downloading the noise sounds to be used for augmentation...")
             # if not, download the WaveGlow folder
             f_id = '13sOukAKPjoW1K0Ic-8t49P_nkO1dj1oc' 
@@ -64,9 +65,7 @@ class Vocalize():
             shutil.unpack_archive(curr_dir + '/noises.zip', curr_dir)
             print("Done.")   
             # remove the zip file
-            os.remove(curr_dir + '/noises.zip')
-            # remove the __MACOSX folder
-            os.remove(curr_dir + '/__MACOSX')    
+            os.remove(curr_dir + '/noises.zip') 
         
         print("Corrupting the dataset...")
         for word in tqdm(words):
