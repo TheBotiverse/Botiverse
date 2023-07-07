@@ -19,7 +19,7 @@ examples/DNN_DST_example/sim-R_demo/label_maps.json
 examples/DNN_DST_example/sim-R_demo/model.pt
 
 *.txt
-!botiverse/bots/TODS/DNN_DST/vocab.txt
+!botiverse/models/TRIPPY/vocab.txt
 
 botiverse.egg-info/PKG-INFO
 botiverse/models/FastSpeech1/weights.pth
