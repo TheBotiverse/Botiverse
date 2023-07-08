@@ -4,7 +4,7 @@
 # # <font color="cyan">Feedforward Neural Network </font> From Scratch Implementation
 # In this notebook, we will implement a feedforward neural network with arbitrary structure, loss and activations. You can find a full tutorial on this notebook [here](hhttps://medium.com/towards-data-science/backpropagation-the-natural-proof-946c5abf63b1).
 
-# In[193]:
+# In[1]:
 
 
 '''
@@ -23,7 +23,7 @@ import pickle
 
 # ### Define the Architecture
 
-# In[194]:
+# In[2]:
 
 
 class NeuralNet():
@@ -75,7 +75,7 @@ NNClass = lambda func: setattr(NeuralNet, func.__name__, func) or func
 
 # ### Backpropagation
 
-# In[195]:
+# In[3]:
 
 
 @NNClass
@@ -115,7 +115,7 @@ def backprop(self, xₛ , yₛ ):
 
 # ### Gradient Descent
 
-# In[196]:
+# In[4]:
 
 
 @NNClass
@@ -141,7 +141,7 @@ def SGD(self, x_batch, y_batch, λ, α=0.01):
     self.Bₙ = [(1 - λ * α / d) * b - λ / d * მJⳆმb / np.linalg.norm(მJⳆმb) for b, მJⳆმb in zip(self.Bₙ, მJⳆმBₙ)]
 
 
-# In[197]:
+# In[5]:
 
 
 @NNClass
@@ -177,7 +177,7 @@ def ADAM(self, x_batch, y_batch, λ, α=0.01, beta1=0.9, beta2=0.999, epsilon=1e
 
 # ### Feedforward
 
-# In[198]:
+# In[6]:
 
 
 @NNClass
@@ -198,7 +198,7 @@ def feedforward(self, x ):
 
 # ### Training Method
 
-# In[199]:
+# In[7]:
 
 
 @NNClass
@@ -234,6 +234,9 @@ def fit(self, X, y, batch_size=32, epochs=200, λ=30, α=0.01, optimizer='ADAM',
     val_loss = 0
     bad_epochs = 0
     for epoch in pbar:
+        # randomly shuffle X, y
+        p = np.random.permutation(len(X))
+        X, y = X[p], y[p]
         for x_batch, y_batch in zip(X, y):
             self.gradient_descent(x_batch, y_batch, λ)          #update the parameters after learning from the mini_batch.
         if eval_train:    
@@ -261,7 +264,7 @@ def fit(self, X, y, batch_size=32, epochs=200, λ=30, α=0.01, optimizer='ADAM',
             val_acc = self.evaluate(X_v, y_v)        
 
 
-# In[200]:
+# In[8]:
 
 
 @NNClass
@@ -293,7 +296,7 @@ def evaluate(self, X,y, loss=False):
 
 # #### Saving and Loading Model
 
-# In[201]:
+# In[9]:
 
 
 @NNClass
@@ -325,7 +328,7 @@ def load(path):
         return model
 
 
-# In[202]:
+# In[10]:
 
 
 # if running from notebook

@@ -87,3 +87,10 @@ def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, 
     print(f'Per Slot Acc: {per_slot_acc}')
     print(f'Macro F1 Score: {macro_f1_score}')
     print(f'All f1 score = {all_f1_score}')
+    
+    
+    
+
+from botiverse.bots import Theorizer
+from botiverse.models import NeuralNet
+from botiverse.preprocessors import BertEmbedder

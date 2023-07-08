@@ -77,7 +77,9 @@ class Wav2Vec():
     
     def transform(self, path, strict_duration=False):
         '''
-        Convert the audio file sample.wav into a wav2vec vector.
+        Convert the audio file as in the path into a wav2vec vector.
+        :param: path: The path to the audio file
+        :param: strict_duration: If True, the audio file is padded or truncated to the duration specified during init.
         '''
         waveform, sr = torchaudio.load(path)
         waveform = torchaudio.transforms.Resample(sr, self.sample_rate)(waveform)
@@ -91,7 +93,7 @@ class Wav2Vec():
                 waveform = waveform[:, :sample_dur]    
         waveform = waveform.squeeze()
         inputs = self.extractor(waveform, return_tensors="pt", padding=True, sampling_rate=self.sample_rate)
-        features = self.model(inputs.input_values).last_hidden_state
+        features = self.model(inputs.input_values).last_hidden_state.detach().numpy()
         return features
     
     
