@@ -6,9 +6,116 @@ import librosa
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
+from audiomentations import Compose, AddGaussianNoise, TimeStretch, PitchShift, Shift
 
-# TODO: Modularize this code
+class Frequency():
+    '''
+    An interface for transforming audio files into frequency domain representations.
+    '''
+    def __init__(self, sample_rate=16000, duration=1, augment=None, type='spec', 
+                 nmels=70, n_fft=720, hop_length=360, is_log=True, **kwargs):
 
+        self.sample_rate = sample_rate
+        self.duration = duration
+        self.emb_dim = 768 * int(49 * self.duration)         # fact regarding wav2vec2-base-960h
+        if augment is None:
+            self.augment = Compose([
+            TimeStretch(min_rate=0.8, max_rate=1.4, p=0.7),
+            PitchShift(min_semitones=-4, max_semitones=1, p=0.8),
+            Shift(min_fraction=-0.5, max_fraction=0.5, p=0.5),
+            AddGaussianNoise(min_amplitude=0.001, max_amplitude=0.015, p=0.5),
+        ])
+        else:
+            self.augment = augment
+        
+        if type == 'spectrogram':
+            self.transform_func = torchaudio.transforms.MelSpectrogram(sample_rate=self.sample_rate, n_fft=n_fft, hop_length=hop_length, n_mels=nmels, **kwargs)
+        elif type == 'mfcc':
+            self.transform_func = torchaudio.transforms.MFCC(sample_rate=self.sample_rate, n_mfcc=nmels, melkwargs={'n_fft':n_fft, 'hop_length':hop_length}, **kwargs)
+        else:   raise ValueError(f"Invalid type of transformation {type}. Expected spectrogram or mfcc")
+        
+        self.is_log = is_log
+
+    def transform_list(self, words, n=4):
+        '''
+        Given a folder dataset with folders each containing audio files, this returns a table of spectra in the form of a numpy array X and a table of classes in the form of a numpy array y.
+        :param: words: A list of words which are the classes of the speech classifier.
+        :param: n: The number of times to augment each audio file.
+        '''
+        # may be needed in the future (draft)
+        sounds_per_word = len(os.listdir(f"dataset/{words[0]}"))
+        self.N = len(words) * sounds_per_word
+        
+        # main function
+        x_data, y_data = [], []
+        for word in tqdm(words):
+            for i, file in enumerate(os.listdir(f"dataset/{word}")):
+                waveform, sr = torchaudio.load(f"dataset/{word}/{file}")
+                waveform = torchaudio.transforms.Resample(sr, self.sample_rate)(waveform)
+
+                if waveform.shape[0] == 2:
+                    waveform = torch.mean(waveform, dim=0, keepdim=True)
+                
+                length = waveform.shape[1]
+                sample_dur = int(self.duration * self.sample_rate)
+                if length < sample_dur:
+                    waveform = torch.cat((waveform, torch.zeros(1, sample_dur - length)), dim=1)
+                elif length > sample_dur:
+                    waveform = waveform[:, :sample_dur]     
+                
+                waveform = waveform.numpy()
+                for _ in range(n):
+                    waveform = self.augment(waveform, sample_rate=self.sample_rate)
+                    spectrum = self.transform_func(torch.from_numpy(waveform))
+                    spectrum = librosa.power_to_db(spectrum[0]) if self.is_log else spectrum[0]
+                    # transpose to get (time, freq) instead of (freq, time)
+                    spectrum = spectrum.T
+                    x_data.append(spectrum)
+                    y_data.append(words.index(word))                
+            
+        x_data, y_data = np.array(x_data), np.array(y_data)
+        
+        return x_data, y_data
+
+
+    
+    def transform(self, path, strict_duration=False):
+        '''
+        Convert the audio file given in path into a frequency domain representation.
+        '''
+        waveform, sr = torchaudio.load(path)
+        waveform = torchaudio.transforms.Resample(sr, self.sample_rate)(waveform)
+        if waveform.shape[0] == 2:  waveform = torch.mean(waveform, dim=0, keepdim=True)
+        length = waveform.shape[1]
+        if strict_duration:
+            sample_dur = int(self.duration * self.sample_rate)
+            if length < sample_dur:
+                waveform = torch.cat((waveform, torch.zeros(1, sample_dur - length)), dim=1)
+            elif length > sample_dur:
+                waveform = waveform[:, :sample_dur]
+            
+        spectrum = self.transform_func(waveform)
+        spectrum = librosa.power_to_db(spectrum[0].numpy()) if self.is_log else spectrum[0].numpy()
+        spectrum = spectrum.T
+        spectrum = spectrum[np.newaxis, ...]
+        return spectrum
+        
+
+
+
+'''
+def plot_freq_domains(words, spectograms, num_pos=SOUNDS_PER_WORD):
+    fig, axs = plt.subplots(len(words), num_pos, figsize=(15, 4*len(words)))
+    for i, word in enumerate(words):
+        for j, (prop, mel) in enumerate(spectograms[word].items()):
+            axs[i, j].imshow(mel, origin="lower", aspect="auto")
+            axs[i, j].set_title(f"{word.upper()}-{prop}")        
+            if j==0:   
+                axs[i, j].set_ylabel("freq_bin")
+                axs[i, j].set_xlabel("time_window")
+        fig.subplots_adjust(hspace=0.5)
+    plt.show(block=False)
+    
 
 def random_waveform(words, mel_transform, mfcc_transform):
     # select random word from words
@@ -35,67 +142,6 @@ def random_waveform(words, mel_transform, mfcc_transform):
     plt.show(block=False)
     print("Shape of waveform: {}".format(waveform.size()))
     print("Sample rate of waveform: {}".format(sample_rate))
-
-
-
-def compute_spectrograms(words, transform, isLog=True,  duration=20000, sample_rate=24000):
-
-    spectra = {}
-    
-    for word in tqdm(words):
-        spectra[word] = {}
-        for i, file in enumerate(os.listdir(f"dataset/{word}")):
-            waveform, sr = torchaudio.load(f"dataset/{word}/{file}")
-            # resample if sr != 24K
-            waveform = torchaudio.transforms.Resample(sr, sample_rate)(waveform)
-
-            if waveform.shape[0] == 2:
-                waveform = torch.mean(waveform, dim=0, keepdim=True)
-            
-            length = waveform.shape[1]
-            
-            if length < duration:
-                waveform = torch.cat((waveform, torch.zeros(1, duration - length)), dim=1)
-            elif length > duration:
-                waveform = waveform[:, :duration]            
-            spectrum = transform(waveform)
-            
-            if isLog:
-                spectrum = librosa.power_to_db(spectrum[0].numpy())
-            else: 
-                spectrum = spectrum[0].numpy()
-                
-            spectra[word][i] = spectrum
-    
-    return spectra
-
-
-
-def plot_freq_domains(words, spectograms, num_pos=SOUNDS_PER_WORD):
-    fig, axs = plt.subplots(len(words), num_pos, figsize=(15, 4*len(words)))
-    for i, word in enumerate(words):
-        for j, (prop, mel) in enumerate(spectograms[word].items()):
-            axs[i, j].imshow(mel, origin="lower", aspect="auto")
-            axs[i, j].set_title(f"{word.upper()}-{prop}")        
-            if j==0:   
-                axs[i, j].set_ylabel("freq_bin")
-                axs[i, j].set_xlabel("time_window")
-        fig.subplots_adjust(hspace=0.5)
-    plt.show(block=False)
-    
-    
-
-
-def from_numpy_dataset(words, spectra):
-    x_data, y_data = [], []
-    for word in words:
-        specs = [spec for (_, spec) in spectra[word].items()]
-        for spec in specs:
-            x_data.append(spec)
-            y_data.append(words.index(word))
-        
-    x_data, y_data = np.array(x_data), np.array(y_data)
-    return x_data, y_data
 
 
 
@@ -165,4 +211,4 @@ def show_next_triplet(train_loader, words):
         ax[i+2].set_title(f'Negative')
     plt.show()
     
-    
+'''
