@@ -1,3 +1,7 @@
+"""
+Theis Module contains the BERT model architecture.
+"""
+
 import torch
 import torch.nn as nn
 
@@ -8,6 +12,15 @@ import torch.nn as nn
 # 2. Preserve different relationships between words such as: semantic, syntactic, linear,
 # and since BERT is bidirectional it will also preserve contextual relationships as well.
 class Embeddings(nn.Module):
+    """
+    Embedding layer for BERT.
+
+    This layer takes input_ids and token_type_ids as inputs and generates word embeddings
+    using three types of embeddings: word, position, and token_type embeddings.
+
+    :param config: BERT configuration.
+    :type config: Config
+    """
     def __init__(self, config):
         super(Embeddings, self).__init__()
         # Bert uses 3 types of embeddings: word, position, and token_type (segment type).
@@ -19,6 +32,16 @@ class Embeddings(nn.Module):
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, input_ids, token_type_ids): # input_ids: [batch_size, seq_len] token_type_ids: [batch_size, seq_len]
+        """
+        Forward pass of the Embeddings layer.
+
+        :param input_ids: The input token IDs.
+        :type input_ids: torch.Tensor
+        :param token_type_ids: The token type IDs.
+        :type token_type_ids: torch.Tensor
+        :return: The generated embeddings.
+        :rtype: torch.Tensor
+        """
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         seq_len = input_ids.size(1)
         position_ids = torch.arange(seq_len).unsqueeze(0).expand_as(input_ids).to(device) # position_ids: [batch_size, seq_len]
@@ -34,6 +57,15 @@ class Embeddings(nn.Module):
 
 # Encoder layer
 class EncoderLayer(nn.Module):
+    """
+    Encoder layer for BERT.
+
+    This layer contains self-attention, layer normalization, and position-wise feed-forward network.
+
+    :param config: BERT configuration.
+    :type config: Config
+    """
+
     def __init__(self, config):
         super(EncoderLayer, self).__init__()
         self.self_attention = MultiHeadAttention(config)
@@ -44,6 +76,17 @@ class EncoderLayer(nn.Module):
         self.ffn_dropout = nn.Dropout(config.dropout)
 
     def forward(self, input, attention_mask):
+        """
+        Forward pass of the EncoderLayer.
+
+        :param input: The input tensor.
+        :type input: torch.Tensor
+        :param attention_mask: The attention mask.
+        :type attention_mask: torch.Tensor
+        :return: The output tensor.
+        :rtype: torch.Tensor
+        """
+
         # Multi-head attention
         context, attention = self.self_attention(input, input, input, attention_mask) # context: [batch_size, seq_len, hidden_size] attention: [batch_size, heads, seq_len, seq_len]
         # Add and normalize
@@ -58,6 +101,14 @@ class EncoderLayer(nn.Module):
 
 # Multi-head attention
 class MultiHeadAttention(nn.Module):
+    """
+    Multi-head attention layer for BERT.
+
+    This layer performs multi-head self-attention and returns the output context.
+
+    :param config: BERT configuration.
+    :type config: Config
+    """
     def __init__(self, config):
         super(MultiHeadAttention, self).__init__()
         self.config = config
@@ -68,8 +119,24 @@ class MultiHeadAttention(nn.Module):
         self.softmax = nn.Softmax(dim=-1)
         self.dropout = nn.Dropout(config.dropout)
 
-    def forward(self, query, key, value, attention_mask): # query: [batch_size, seq_len, hidden_size] key: [batch_size, seq_len, hidden_size]
-                                                          # value: [batch_size, seq_len, hidden_size] attention_mask: [batch_size, seq_len_q, seq_len_k]
+    def forward(self, query, key, value, attention_mask): 
+        """
+        Forward pass of the MultiHeadAttention.
+
+        :param query: The query tensor.
+        :type query: torch.Tensor
+        :param key: The key tensor.
+        :type key: torch.Tensor
+        :param value: The value tensor.
+        :type value: torch.Tensor
+        :param attention_mask: The attention mask.
+        :type attention_mask: torch.Tensor
+        :return: The output context.
+        :rtype: torch.Tensor
+        """                                                  
+                
+        # query: [batch_size, seq_len, hidden_size] key: [batch_size, seq_len, hidden_size]
+        # value: [batch_size, seq_len, hidden_size] attention_mask: [batch_size, seq_len_q, seq_len_k]                                          
 
         batch_size, seq_len, hidden_size = query.size()
 
@@ -91,6 +158,14 @@ class MultiHeadAttention(nn.Module):
 
 # Position-wise feed-forward network
 class PositionWiseFeedForward(nn.Module):
+    """
+    Position-wise feed-forward network layer for BERT.
+
+    This layer applies two linear transformations with a GELU activation function.
+
+    :param config: BERT configuration.
+    :type config: Config
+    """
     def __init__(self, config):
         super(PositionWiseFeedForward, self).__init__()
         self.linear1 = nn.Linear(config.hidden_size, config.ff_size)
@@ -98,6 +173,14 @@ class PositionWiseFeedForward(nn.Module):
         self.gelu = nn.GELU()
 
     def forward(self, input):
+        """
+        Forward pass of the PositionWiseFeedForward layer.
+
+        :param input: The input tensor.
+        :type input: torch.Tensor
+        :return: The output tensor.
+        :rtype: torch.Tensor
+        """
         output = self.linear1(input) # output: [batch_size, seq_len, ff_size]
         output = self.gelu(output) # output: [batch_size, seq_len, ff_size]
         output = self.linear2(output) # output: [batch_size, seq_len, hidden_size]
@@ -106,6 +189,15 @@ class PositionWiseFeedForward(nn.Module):
 # Bert
 # 1. Puts it all together.
 class Bert(nn.Module):
+    """
+    BERT model implementation.
+
+    This model combines the Embeddings layer, EncoderLayers, and linear transformation layers
+    to perform BERT-based processing.
+
+    :param config: BERT configuration.
+    :type config: Config
+    """
     def __init__(self, config):
         super(Bert, self).__init__()
         self.embeddings = Embeddings(config)
@@ -114,7 +206,21 @@ class Bert(nn.Module):
         self.tanh = nn.Tanh()
 
     def forward(self, input_ids, token_type_ids, attention_mask, return_dict=False): # input_ids: [batch_size, seq_len] token_type_ids: [batch_size, seq_len] attention_mask: [batch_size, seq_len]
+        """
+        Forward pass of the Bert model.
 
+        :param input_ids: The input token IDs.
+        :type input_ids: torch.Tensor
+        :param token_type_ids: The token type IDs.
+        :type token_type_ids: torch.Tensor
+        :param attention_mask: The attention mask.
+        :type attention_mask: torch.Tensor
+        :param return_dict: Whether to return a dictionary or not, defaults to False.
+        :type return_dict: bool
+        :return: The sequence output and pooled output.
+        :rtype: torch.Tensor, torch.Tensor
+        """
+        
         # Embedding
         output = self.embeddings(input_ids, token_type_ids) # output: [batch_size, seq_len, hidden_size]
 

@@ -6,7 +6,9 @@ Botiverse
 
    botiverse
    botiverse-tests
-   botiverse.TODS
-   botiverse.basic_chatbot
+   botiverse.bots
+   botiverse.gui
+   botiverse.models
+   botiverse.preprocessors
    main
    setup

@@ -1,3 +1,7 @@
+"""
+This module contains utility functions for the BERT model.
+"""
+
 from collections import OrderedDict
 from transformers import BertModel
 from botiverse.models.BERT.config import BERTConfig
@@ -6,6 +10,15 @@ from botiverse.models.BERT.BERT import Bert
 
 # Load pre-trained weights from trnasformers library
 def LoadPretrainedWeights(model):
+    """
+    Load pre-trained weights from the transformers library.
+
+    This function loads the pre-trained weights from the transformers library
+    and updates the model's state_dict accordingly.
+
+    :param model: The BERT model.
+    :type model: Bert
+    """
 
     # Get pre-trained weights from transformers library
     pretrained_model = BertModel.from_pretrained('bert-base-uncased')
@@ -35,7 +48,10 @@ import torch
 from transformers import BertModel, BertTokenizer
 
 def Example():
-
+    """
+    Example comparing the outputs of the from scratch model to the pre-trained model from transformers library.
+    """
+    
     # Build a BERT model from scratch
     config = BERTConfig()
     model = Bert(config)

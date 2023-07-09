@@ -1,3 +1,8 @@
+"""
+This Module has the inference functions for TRIPPY.
+"""
+
+
 import torch
 
 from botiverse.models.TRIPPY.data import create_inputs
@@ -5,6 +10,34 @@ from botiverse.models.TRIPPY.utils import create_span_output
 
 
 def infer(model, slot_list, current_state, history, sys_utter, user_utter, inform_mem, device, oper2id, tokenizer, max_len):
+  """
+  Infer the dialogue state using the TRIPPY model.
+
+  :param model: The TRIPPY model for inference.
+  :type model: TRIPPY
+  :param slot_list: The list of slots.
+  :type slot_list: list
+  :param current_state: The current dialogue state.
+  :type current_state: dict
+  :param history: The dialogue history.
+  :type history: list
+  :param sys_utter: The system's utterance.
+  :type sys_utter: str
+  :param user_utter: The user's utterance.
+  :type user_utter: str
+  :param inform_mem: The inform memory.
+  :type inform_mem: dict
+  :param device: The device to run the inference on.
+  :type device: torch.device
+  :param oper2id: The mapping of operations to IDs.
+  :type oper2id: dict
+  :param tokenizer: The tokenizer to tokenize the input.
+  :type tokenizer: transformers.PreTrainedTokenizer
+  :param max_len: The maximum length of the input sequence.
+  :type max_len: int
+  :return: The predicted dialogue state.
+  :rtype: dict
+  """
 
   model.eval()
 

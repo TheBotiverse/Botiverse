@@ -1,3 +1,7 @@
+"""
+This Module has the run functions for TRIPPY that train and evaluate the model.
+"""
+
 import torch
 from torch.optim import AdamW
 from transformers import get_linear_schedule_with_warmup
@@ -9,13 +13,41 @@ from botiverse.models.TRIPPY.evaluate import eval
 
 
 def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, device, non_referable_slots, non_referable_pairs, model_path, TRIPPY_config):
+    """
+    Train and evaluate the TRIPPY model.
+
+    :param model: The TRIPPY model.
+    :type model: TRIPPY
+    :param domains: The domains to consider in the dataset.
+    :type domains: list
+    :param slot_list: The list of slots.
+    :type slot_list: list
+    :param label_maps: The mapping of slot values to their variants.
+    :type label_maps: dict
+    :param train_json: The path to the training dataset in JSON format.
+    :type train_json: str
+    :param dev_json: The path to the development dataset in JSON format.
+    :type dev_json: str
+    :param test_json: The path to the testing dataset in JSON format.
+    :type test_json: str
+    :param device: The device to train and evaluate the model on.
+    :type device: torch.device
+    :param non_referable_slots: The slots that are not referable.
+    :type non_referable_slots: list
+    :param non_referable_pairs: The pairs of slots that are not referable.
+    :type non_referable_pairs: list
+    :param model_path: The path to save the best model.
+    :type model_path: str
+    :param TRIPPY_config: The configuration for TRIPPY.
+    :type TRIPPY_config: TRIPPYConfig
+    """
 
     n_slots = len(slot_list)
 
     # train
     print('Preprocessing train set...')
     train_raw_data, train_data = prepare_data(train_json, slot_list, label_maps, TRIPPY_config.tokenizer, TRIPPY_config.max_len, domains, non_referable_slots, non_referable_pairs)
-    train_dataset = Dataset(train_data, n_slots, OPER2ID, slot_list)
+    train_dataset = Dataset(train_data, n_slots, TRIPPY_config.oper2id, slot_list)
     train_sampler = torch.utils.data.RandomSampler(train_dataset)
     train_data_loader = torch.utils.data.DataLoader(train_dataset,
                                                     sampler=train_sampler,
@@ -23,15 +55,15 @@ def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, 
 
     # dev
     print('Preprocessing dev set...')
-    dev_raw_data, dev_data = prepare_data(dev_json, slot_list, label_maps, tokenizer, max_len, domains, non_referable_slots, non_referable_pairs)
+    dev_raw_data, dev_data = prepare_data(dev_json, slot_list, label_maps, TRIPPY_config.tokenizer, TRIPPY_config.max_len, domains, non_referable_slots, non_referable_pairs)
     dev_dataset = Dataset(dev_data, n_slots, TRIPPY_config.oper2id, slot_list)
     dev_data_loader = torch.utils.data.DataLoader(dev_dataset,
                                                   batch_size=TRIPPY_config.dev_batch_size)
 
     # test
     print('Preprocessing test set...')
-    test_raw_data, test_data = prepare_data(test_json, slot_list, label_maps, tokenizer, max_len, domains, non_referable_slots, non_referable_pairs)
-    test_dataset = Dataset(test_data, n_slots, OPER2ID, slot_list)
+    test_raw_data, test_data = prepare_data(test_json, slot_list, label_maps, TRIPPY_config.tokenizer, TRIPPY_config.max_len, domains, non_referable_slots, non_referable_pairs)
+    test_dataset = Dataset(test_data, n_slots, TRIPPY_config.oper2id, slot_list)
     test_data_loader = torch.utils.data.DataLoader(test_dataset,
                                                    batch_size=TRIPPY_config.test_batch_size)
 

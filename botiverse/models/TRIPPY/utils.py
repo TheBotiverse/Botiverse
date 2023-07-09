@@ -6,6 +6,24 @@ from botiverse.models.TRIPPY.config import MULTIWOZ
 
 
 class RawDataInstance():
+  """
+  Represents a raw data instance.
+
+  :param dial_idx: Dialogue index.
+  :type dial_idx: str
+  :param turn_idx: Turn index.
+  :type turn_idx: int
+  :param user_utter: User utterance.
+  :type user_utter: str
+  :param sys_utter: System utterance.
+  :type sys_utter: str
+  :param history: Dialogue history.
+  :type history: list[str]
+  :param turn_slots: Slots for the current turn.
+  :type turn_slots: dict[str, str]
+  :param inform_mem: Informed slots from previous turns.
+  :type inform_mem: dict[str, list[str]]
+  """
   def __init__(self,
                dial_idx,
                turn_idx,
@@ -23,6 +41,12 @@ class RawDataInstance():
     self.inform_mem = inform_mem
 
   def __str__(self):
+    """
+    Return a string representation of the RawDataInstance object.
+
+    :return: A string representation of the object.
+    :rtype: str
+    """
     string = ''
     string = string + '\ndial_idx: ' + str(self.dial_idx)
     string = string + '\nturn_idx: ' + str(self.turn_idx)
@@ -34,6 +58,42 @@ class RawDataInstance():
     return string
 
 class DataInstance():
+  """
+  Represents a processed data instance.
+
+  :param ids: Input IDs.
+  :type ids: list[int]
+  :param mask: Attention mask.
+  :type mask: list[int]
+  :param token_type_ids: Token type IDs.
+  :type token_type_ids: list[int]
+  :param spans: Spans.
+  :type spans: list[int]
+  :param spans_start: Start positions of spans.
+  :type spans_start: list[int]
+  :param spans_end: End positions of spans.
+  :type spans_end: list[int]
+  :param padding_len: Padding length.
+  :type padding_len: int
+  :param input_tokens: Input tokens.
+  :type input_tokens: str
+  :param input: Input text.
+  :type input: str
+  :param opers: Slot operations.
+  :type opers: list[int]
+  :param target_values: Target slot values.
+  :type target_values: list[str]
+  :param last_state: Last dialogue state.
+  :type last_state: dict[str, str]
+  :param cur_state: Current dialogue state.
+  :type cur_state: dict[str, str]
+  :param refer: Referenced slots.
+  :type refer: list[int]
+  :param inform_aux_features: Informed auxiliary features.
+  :type inform_aux_features: list[float]
+  :param ds_aux_features: Filled slot auxiliary features.
+  :type ds_aux_features: list[float]
+  """
   def __init__(self,
                ids,
                mask,
@@ -69,6 +129,12 @@ class DataInstance():
     self.ds_aux_features = ds_aux_features
 
   def __str__(self):
+    """
+    Return a string representation of the DataInstance object.
+
+    :return: A string representation of the object.
+    :rtype: str
+    """
     string = ''
     string = string + '\nids: ' + str(self.ids)
     string = string + '\nmask: ' + str(self.mask)
@@ -90,17 +156,30 @@ class DataInstance():
     return string
 
 class AverageMeter():
-    """Computes and stores the average and current value"""
+    """
+    Computes and stores the average and current value.
+    """
     def __init__(self):
         self.reset()
 
     def reset(self):
+        """
+        Reset the average meter.
+        """
         self.val = 0
         self.avg = 0
         self.sum = 0
         self.count = 0
 
     def update(self, val, n=1):
+        """
+        Update the average meter with a new value.
+
+        :param val: New value.
+        :type val: float
+        :param n: Number of instances the value represents.
+        :type n: int
+        """
         self.val = val
         self.sum += val * n
         self.count += n
@@ -108,6 +187,14 @@ class AverageMeter():
 
 
 def normalize(text):
+  """
+  Normalize the given text by converting it to lowercase and splitting it into tokens.
+
+  :param text: Input text.
+  :type text: str
+  :return: Normalized tokens.
+  :rtype: list[str]
+  """
   text_lower = text.lower()
   if MULTIWOZ == True:
     # TODO: Delete MULTIWOZ
@@ -119,7 +206,16 @@ def normalize(text):
 
 
 def is_included(value, target):
+  """
+  Check if the target is included in the value.
 
+  :param value: The value to check.
+  :type value: str
+  :param target: The target value to search for.
+  :type target: str
+  :return: True if the target is included in the value, False otherwise.
+  :rtype: bool
+  """
   included = False
 
   value = [item for item in map(str.strip, re.split("(\W+)", value)) if len(item) > 0]
@@ -133,6 +229,18 @@ def is_included(value, target):
 
 
 def included_with_label_maps(value, target, label_maps):
+  """
+  Check if the value is included in the target or any of its variants based on the label maps.
+
+  :param value: The value to check.
+  :type value: str
+  :param target: The target value to search for.
+  :type target: str
+  :param label_maps: Dictionary of label maps.
+  :type label_maps: dict[str, list[str]]
+  :return: True if the value is included in the target or any of its variants, False otherwise.
+  :rtype: bool
+  """
   included = False
 
   variants = [target]
@@ -147,6 +255,18 @@ def included_with_label_maps(value, target, label_maps):
 
 
 def match_with_label_maps(value, target, label_maps={}):
+    """
+    Check if the value matches the target or any of its variants based on the label maps.
+
+    :param value: The value to check.
+    :type value: str
+    :param target: The target value to match against.
+    :type target: str
+    :param label_maps: Dictionary of label maps.
+    :type label_maps: dict[str, list[str]]
+    :return: True if the value matches the target or any of its variants, False otherwise.
+    :rtype: bool
+    """
     equal = False
     if value == target:
       equal = True
@@ -159,7 +279,20 @@ def match_with_label_maps(value, target, label_maps={}):
 
 
 def create_span_output(output_start, output_end, padding_len, input_tokens):
+  """
+  Create the span output based on the output start and end positions.
 
+  :param output_start: Output start positions.
+  :type output_start: list[int]
+  :param output_end: Output end positions.
+  :type output_end: list[int]
+  :param padding_len: Padding length.
+  :type padding_len: int
+  :param input_tokens: Input tokens.
+  :type input_tokens: str
+  :return: The created span output.
+  :rtype: str
+  """
   mask = [0] * (len(output_start) - padding_len)
 
   if padding_len > 0:
@@ -192,6 +325,18 @@ def create_span_output(output_start, output_end, padding_len, input_tokens):
 
 
 def mask_utterance(utter, inform_mem, replace_with='[UNK]'):
+  """
+  Mask the utterance by replacing the informed values in the inform memory.
+
+  :param utter: The utterance to mask.
+  :type utter: list[str]
+  :param inform_mem: The inform memory containing slot-value pairs.
+  :type inform_mem: dict[str, list[str]]
+  :param replace_with: The replacement token.
+  :type replace_with: str
+  :return: The masked utterance.
+  :rtype: list[str]
+  """
   utter = normalize(utter)
   for slot, informed_values in inform_mem.items():
     for informed_value in informed_values:
@@ -205,7 +350,15 @@ def mask_utterance(utter, inform_mem, replace_with='[UNK]'):
 
 
 def normalize_time(text):
+    """
+    Normalize the time format in the given text (specific to MultiWoz dataset).
 
+    :param text: The input text.
+    :type text: str
+    :return: The normalized text.
+    :rtype: str
+    """
+    
     # This code is only related to MultiWoz Dataset
 
     text = re.sub("(\d{1})(a\.?m\.?|p\.?m\.?)", r"\1 \2", text) # am/pm without space
@@ -221,6 +374,14 @@ def normalize_time(text):
 
 
 def normalize_text(text):
+    """
+    Normalize the text (specific to MultiWoz dataset).
+
+    :param text: The input text.
+    :type text: str
+    :return: The normalized text.
+    :rtype: str
+    """
 
     # This code is only related to MultiWoz Dataset
 

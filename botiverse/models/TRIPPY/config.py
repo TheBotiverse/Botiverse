@@ -1,3 +1,7 @@
+"""
+This Module has the configuration class for TRIPPY.
+"""
+
 import tokenizers
 import os
 
@@ -7,6 +11,44 @@ MULTIWOZ = True
 
 # Trippy configuration
 class TRIPPYConfig(object):
+    """
+    Configuration class for TRIPPY.
+
+    This class holds the configuration parameters for the TRIPPY model.
+
+    :param max_len: The maximum sequence length, defaults to 128.
+    :type max_len: int
+    :param train_batch_size: The batch size for training, defaults to 32.
+    :type train_batch_size: int
+    :param dev_batch_size: The batch size for development evaluation, defaults to 1.
+    :type dev_batch_size: int
+    :param test_batch_size: The batch size for testing, defaults to 1.
+    :type test_batch_size: int
+    :param epochs: The number of training epochs, defaults to 15.
+    :type epochs: int
+    :param hid_dim: The hidden dimension size, defaults to 768.
+    :type hid_dim: int
+    :param n_oper: The number of operations, defaults to 7.
+    :type n_oper: int
+    :param dropout: The dropout rate, defaults to 0.3.
+    :type dropout: float
+    :param vocab_path: The path to the vocabulary file, defaults to 'vocab.txt'.
+    :type vocab_path: str
+    :param ignore_idx: The index value to ignore, defaults to -100.
+    :type ignore_idx: int
+    :param oper2id: The mapping of operation names to IDs, defaults to {'carryover' : 0, 'dontcare': 1, 'update':2, 'refer':3, 'yes':4, 'no':5, 'inform':6}.
+    :type oper2id: dict[str, int]
+    :param weight_decay: The weight decay value, defaults to 0.0.
+    :type weight_decay: float
+    :param lr: The learning rate, defaults to 1e-4.
+    :type lr: float
+    :param adam_epsilon: The epsilon value for Adam optimizer, defaults to 1e-6.
+    :type adam_epsilon: float
+    :param warmup_proportion: The proportion of warmup steps, defaults to 0.1.
+    :type warmup_proportion: float
+    :param multiwoz: The path to the MultiWOZ dataset, defaults to MULTIWOZ.
+    :type multiwoz: str
+    """
     def __init__(self, 
                  max_len=128, 
                  train_batch_size=32, 
@@ -43,32 +85,3 @@ class TRIPPYConfig(object):
         self.adam_epsilon = adam_epsilon
         self.warmup_proportion = warmup_proportion
         self.multiwoz = multiwoz
-
-
-# Other config variables for experiments with different datasets
-
-# # Multi-woz
-# ONTOLOGY_PATH = './Dataset/fixed/ontology.json'
-# LABEL_MAPS_PATH = './Dataset/fixed/label_maps.json'
-# TRAIN_DATA_PATH = './Dataset/fixed/train_dials.json'
-# DEV_DATA_PATH = './Dataset/fixed/dev_dials.json'
-# TEST_DATA_PATH = './Dataset/fixed/test_dials.json'
-# MODEL_PATH = './Models/model.pt'
-# EXPERIMENT_DOMAINS = ["hotel", "train", "restaurant", "attraction", "taxi"]
-# # EXPERIMENT_DOMAINS = ["restaurant"]
-# NON_REFERABLE_SLOTS = ['hotel-stars', 'hotel-internet', 'hotel-parking']
-# NON_REFERABLE_PAIRS = [('hotel-book_people','hotel-book_stay'), ('restaurant-book_people','hotel-book_stay')]
-# MULTIWOZ = True
-
-
-# # Woz
-# ONTOLOGY_PATH = './Woz2/fixed/ontology.json'
-# LABEL_MAPS_PATH = './Woz2/fixed/label_maps.json'
-# TRAIN_DATA_PATH = './Woz2/fixed/train_dials.json'
-# DEV_DATA_PATH = './Woz2/fixed/dev_dials.json'
-# TEST_DATA_PATH = './Woz2/fixed/test_dials.json'
-# MODEL_PATH = './Models/model.pt'
-# EXPERIMENT_DOMAINS = ["restaurant"]
-# NON_REFERABLE_SLOTS = []
-# NON_REFERABLE_PAIRS = []
-# MULTIWOZ = False

@@ -1,11 +1,32 @@
+"""
+This Module contains the data processing functions for TRIPPY.
+"""
+
 import json
 import torch
 import numpy as np
 import re
+from tqdm import tqdm
 
 from botiverse.models.TRIPPY.utils import RawDataInstance, DataInstance, normalize, is_included, included_with_label_maps, match_with_label_maps, mask_utterance
 
 def get_ontology_label_maps(ontology_path, label_maps_path, domains):
+  """
+  Read ontology and label maps, and filter slots based on domains.
+
+  :param ontology_path: The path to the ontology file.
+  :type ontology_path: str
+
+  :param label_maps_path: The path to the label maps file.
+  :type label_maps_path: str
+
+  :param domains: The list of domains to filter the slots.
+  :type domains: list[str]
+
+  :return: The sorted slot list and label maps.
+  :rtype: tuple[list[str], dict]
+  """
+
   # read ontology
   file = open(ontology_path)
   slot_list = json.load(file)
@@ -30,6 +51,25 @@ def get_ontology_label_maps(ontology_path, label_maps_path, domains):
 
 
 def read_raw_data(data_path, slot_list, max_len, domains):
+  """
+  Read raw data from the JSON file and preprocess it.
+
+  :param data_path: The path to the JSON data file.
+  :type data_path: str
+
+  :param slot_list: The list of slots.
+  :type slot_list: list[str]
+
+  :param max_len: The maximum length of the input sequence.
+  :type max_len: int
+
+  :param domains: The list of domains.
+  :type domains: list[str]
+
+  :return: The list of raw data instances.
+  :rtype: list[RawDataInstance]
+  """
+
   # read data
   file = open(data_path)
   parsed_data = json.load(file)
@@ -79,6 +119,28 @@ def read_raw_data(data_path, slot_list, max_len, domains):
 
 
 def create_slot_span(input, target_value, tok_input_offsets, padding_len, label_maps):
+  """
+  Create a slot span given the input, target value, and token input offsets, 
+  by matching the target value as tokens with the input sequence. 
+
+  :param input: The input string.
+  :type input: str
+
+  :param target_value: The target value.
+  :type target_value: str
+
+  :param tok_input_offsets: The token input offsets.
+  :type tok_input_offsets: list[tuple[int, int]]
+
+  :param padding_len: The padding length.
+  :type padding_len: int
+
+  :param label_maps: The label maps.
+  :type label_maps: dict
+
+  :return: The slot span, span start index, and span end index.
+  :rtype: tuple[list[int], int, int]
+  """
 
   # get all possible variants of the slot value
   label_variants = [target_value]
@@ -144,6 +206,31 @@ def create_slot_span(input, target_value, tok_input_offsets, padding_len, label_
 
 
 def create_inputs(history, user_utter, sys_utter, tokenizer, max_len):
+  """
+  Create inputs for BERT using the history, user utterance, system utterance,
+  by creating and tokenizing the input seqence and creating the masks.
+
+  :param history: The history of utterances.
+  :type history: list[str]
+
+  :param user_utter: The user's utterance.
+  :type user_utter: str
+
+  :param sys_utter: The system's utterance.
+  :type sys_utter: str
+
+  :param tokenizer: The tokenizer to tokenize the input.
+  :type tokenizer: transformers.PreTrainedTokenizer
+
+  :param max_len: The maximum length of the input.
+  :type max_len: int
+
+  :return: The input string, token IDs, attention mask, token type IDs,
+            token input offsets, tokenized input tokens, and padding length.
+  :rtype: tuple[str, list[int], list[int], list[int], list[tuple[int, int]],
+                list[str], int]
+  """
+
 
   # create input string
   history = " ".join(history)
@@ -178,6 +265,22 @@ def create_inputs(history, user_utter, sys_utter, tokenizer, max_len):
 
 
 def is_informed(value, target, label_maps):
+  """
+  Check if a value is informed by the system given a target value and label maps.
+
+  :param value: The value to check.
+  :type value: str
+
+  :param target: The target value.
+  :type target: str
+
+  :param label_maps: The label maps.
+  :type label_maps: dict
+
+  :return: A tuple indicating if the value is informed and the informed value.
+  :rtype: tuple[bool, str]
+  """
+
   informed = False
   informed_value = 'none'
 
@@ -195,6 +298,31 @@ def is_informed(value, target, label_maps):
 
 
 def get_refered_slot(target_value, slot, last_state, non_referable_slots, non_referable_pairs, label_maps={}):
+    """
+    Get the referred slot if the user refers to another slot in the dialogue state given a target value, slot, last state, 
+    non-referable slots, non-referable pairs, and label maps.
+
+    :param target_value: The target value.
+    :type target_value: str
+
+    :param slot: The slot to check.
+    :type slot: str
+
+    :param last_state: The last state.
+    :type last_state: dict
+
+    :param non_referable_slots: The list of non-referable slots.
+    :type non_referable_slots: list[str]
+
+    :param non_referable_pairs: The list of non-referable slot pairs.
+    :type non_referable_pairs: list[tuple[str, str]]
+
+    :param label_maps: The label maps.
+    :type label_maps: dict, optional
+
+    :return: The referred slot.
+    :rtype: str
+    """
 
     referred_slot = 'none'
 
@@ -223,6 +351,45 @@ def get_refered_slot(target_value, slot, last_state, non_referable_slots, non_re
 
 
 def create_labels(target_value, slot, last_state, input, tok_input_offsets, inform_mem, label_maps, padding_len, max_len, non_referable_slots, non_referable_pairs):
+  """
+  Create the target operation and the span labels for a slot.
+
+  :param target_value: The target value.
+  :type target_value: str
+
+  :param slot: The slot.
+  :type slot: str
+
+  :param last_state: The last state.
+  :type last_state: dict
+
+  :param input: The input string.
+  :type input: str
+
+  :param tok_input_offsets: The token input offsets.
+  :type tok_input_offsets: list[tuple[int, int]]
+
+  :param inform_mem: The inform memory.
+  :type inform_mem: dict
+
+  :param label_maps: The label maps.
+  :type label_maps: dict
+
+  :param padding_len: The padding length.
+  :type padding_len: int
+
+  :param max_len: The maximum length of the input.
+  :type max_len: int
+
+  :param non_referable_slots: The list of non-referable slots (slots that can not use refering).
+  :type non_referable_slots: list[str]
+
+  :param non_referable_pairs: The list of non-referable slot pairs (slots pairs that can not refer to each other).
+  :type non_referable_pairs: list[tuple[str, str]]
+
+  :return: The operation, span, span start index, span end index, referred slot, and informed value.
+  :rtype: tuple[str, list[int], int, int, str, str]
+  """
 
   oper = 'carryover'
   span = [0] * max_len
@@ -264,6 +431,33 @@ def create_labels(target_value, slot, last_state, input, tok_input_offsets, info
 
 
 def create_data(raw_data, slot_list, label_maps, tokenizer, max_len, non_referable_slots, non_referable_pairs):
+  """
+  Create the data instances for training or evaluation.
+
+  :param raw_data: The list of raw data instances.
+  :type raw_data: list[RawDataInstance]
+
+  :param slot_list: The list of slots.
+  :type slot_list: list[str]
+
+  :param label_maps: The label maps.
+  :type label_maps: dict
+
+  :param tokenizer: The tokenizer to tokenize the input.
+  :type tokenizer: transformers.PreTrainedTokenizer
+
+  :param max_len: The maximum length of the input.
+  :type max_len: int
+
+  :param non_referable_slots: The list of non-referable slots.
+  :type non_referable_slots: list[str]
+
+  :param non_referable_pairs: The list of non-referable slot pairs.
+  :type non_referable_pairs: list[tuple[str, str]]
+
+  :return: The list of data instances.
+  :rtype: list[DataInstance]
+  """
 
   data = []
 
@@ -385,6 +579,39 @@ def create_data(raw_data, slot_list, label_maps, tokenizer, max_len, non_referab
 
 
 def prepare_data(data_path, slot_list, label_maps, tokenizer, max_len, domains, non_referable_slots, non_referable_pairs):
+  """
+  Prepare the data for training or evaluation, this usually the function you want to call to preprocess the data for
+  TripPy model, it encapsulates the whole process of preprcessing the data by calling the other functions in this
+  module.
+
+  :param data_path: The path to the JSON data file.
+  :type data_path: str
+
+  :param slot_list: The list of slots.
+  :type slot_list: list[str]
+
+  :param label_maps: The label maps.
+  :type label_maps: dict
+
+  :param tokenizer: The tokenizer to tokenize the input.
+  :type tokenizer: transformers.PreTrainedTokenizer
+
+  :param max_len: The maximum length of the input.
+  :type max_len: int
+
+  :param domains: The list of domains.
+  :type domains: list[str]
+
+  :param non_referable_slots: The list of non-referable slots.
+  :type non_referable_slots: list[str]
+
+  :param non_referable_pairs: The list of non-referable slot pairs.
+  :type non_referable_pairs: list[tuple[str, str]]
+
+  :return: The raw data and prepared data.
+  :rtype: tuple[list[RawDataInstance], list[DataInstance]]
+  """
+
 
   # create raw data
   raw_data = read_raw_data(data_path, slot_list, max_len, domains)
@@ -396,6 +623,21 @@ def prepare_data(data_path, slot_list, label_maps, tokenizer, max_len, domains, 
 
 
 class Dataset(torch.utils.data.Dataset):
+  """
+  PyTorch Dataset for the TRIPPY model.
+  
+  :param data: The list of data instances.
+  :type data: list[DataInstance]
+
+  :param n_slots: The number of slots.
+  :type n_slots: int
+
+  :param oper2id: The mapping of operations to IDs.
+  :type oper2id: dict[str, int]
+
+  :param slot_list: The list of slots.
+  :type slot_list: list[str]
+  """
 
   def __init__(self, data, n_slots, oper2id, slot_list):
 
@@ -419,9 +661,24 @@ class Dataset(torch.utils.data.Dataset):
 
 
   def __len__(self):
+    """
+    Get the length of the dataset.
+
+    :return: The length of the dataset.
+    :rtype: int
+    """
     return len(self.ids)
 
   def __getitem__(self, idx):
+    """
+    Get an item from the dataset at the given index.
+
+    :param idx: The index of the item.
+    :type idx: int
+
+    :return: The item at the given index.
+    :rtype: dict[str, torch.Tensor or str]
+    """
     return {
         'ids': torch.tensor(self.ids[idx], dtype=torch.long),
         'mask': torch.tensor(self.mask[idx], dtype=torch.long),

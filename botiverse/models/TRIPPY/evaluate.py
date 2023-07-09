@@ -1,3 +1,6 @@
+"""
+This Module has the evaluation functions for TRIPPY.
+"""
 import torch
 import numpy as np
 from sklearn.metrics import f1_score
@@ -8,6 +11,19 @@ from botiverse.models.TRIPPY.utils import normalize, is_included, included_with_
 
 
 def get_informed_value(value, target, label_maps):
+  """
+  Get the informed value based on the value and target, taking into account label maps.
+
+  :param value: The original value.
+  :type value: str
+  :param target: The target value to compare with.
+  :type target: str
+  :param label_maps: The mapping of slot values to their variants.
+  :type label_maps: dict
+  :return: The informed value.
+  :rtype: str
+  """
+
   informed = False
   informed_value = value
 
@@ -26,6 +42,28 @@ def get_informed_value(value, target, label_maps):
 
 
 def eval(raw_data, data, model, device, n_slots, slot_list, label_maps, oper2id):
+  """
+  Evaluate the model on the given data.
+
+  :param raw_data: The raw data.
+  :type raw_data: list
+  :param data: The processed data.
+  :type data: list
+  :param model: The model to evaluate.
+  :type model: nn.Module
+  :param device: The device to run the evaluation on.
+  :type device: torch.device
+  :param n_slots: The number of slots.
+  :type n_slots: int
+  :param slot_list: The list of slots.
+  :type slot_list: list
+  :param label_maps: The mapping of slot values to their variants.
+  :type label_maps: dict
+  :param oper2id: The mapping of operations to their IDs.
+  :type oper2id: dict
+  :return: The evaluation metrics.
+  :rtype: tuple
+  """
 
   model.eval()
 

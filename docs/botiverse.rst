@@ -7,8 +7,10 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   botiverse.TODS
-   botiverse.basic_chatbot
+   botiverse.bots
+   botiverse.gui
+   botiverse.models
+   botiverse.preprocessors
 
 Module contents
 ---------------

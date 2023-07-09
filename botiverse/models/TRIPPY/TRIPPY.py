@@ -1,3 +1,7 @@
+"""
+This Module has the TRIPPY model.
+"""
+
 import torch
 import torch.nn as nn
 from transformers import BertModel
@@ -7,6 +11,24 @@ from botiverse.models.BERT.config import BERTConfig
 from botiverse.models.BERT.utils import LoadPretrainedWeights
 
 class TRIPPY(nn.Module):
+  """
+  TRIPPY (Task-oriented Reasoning and Inference for Pre-trained models with Pre-trained Ypesystem) model.
+
+  This class implements the TRIPPY model for task-oriented dialogue understanding and slot filling.
+
+  :param n_slots: The number of slots, corresponding to the number of dialogue slots to be filled.
+  :type n_slots: int
+  :param hid_dim: The hidden dimension size.
+  :type hid_dim: int
+  :param n_oper: The number of operations.
+  :type n_oper: int
+  :param dropout: The dropout rate.
+  :type dropout: float
+  :param from_scratch: Whether to build the BERT model from scratch or load pre-trained weights, defaults to False.
+  :type from_scratch: bool
+  :param BERT_config: The configuration for the BERT model, defaults to BERTConfig().
+  :type BERT_config: BERTConfig
+  """
 
   def __init__(self, n_slots, hid_dim, n_oper, dropout, from_scratch, BERT_config=BERTConfig()):
     super(TRIPPY, self).__init__()
@@ -33,7 +55,23 @@ class TRIPPY(nn.Module):
     self.ds_aux_layer = nn.Linear(n_slots, n_slots)
 
   def forward(self, ids, mask, token_type_ids, inform_aux_features, ds_aux_features):
+    """
+    Forward pass of the TRIPPY model.
 
+    :param ids: The input token IDs.
+    :type ids: torch.Tensor, shape [batch size, seq len]
+    :param mask: The attention mask indicating which tokens are valid.
+    :type mask: torch.Tensor, shape [batch size, seq len]
+    :param token_type_ids: The token type IDs.
+    :type token_type_ids: torch.Tensor, shape [batch size, seq len]
+    :param inform_aux_features: The auxiliary features for informing slots.
+    :type inform_aux_features: torch.Tensor, shape [batch size, n_slots]
+    :param ds_aux_features: The auxiliary features for dialogue state tracking.
+    :type ds_aux_features: torch.Tensor, shape [batch size, n_slots]
+    :return: Tuple containing the logits for slot start positions, slot end positions, slot operations, and slot references.
+    :rtype: tuple(torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor)
+    """
+    
     # ids = [batch size, seq len]
     # mask = [batch size, seq len]
     # token_type_ids = [batch size, seq len]

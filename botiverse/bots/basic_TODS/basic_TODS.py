@@ -1,5 +1,5 @@
 """
-This module contains the base code and interface of TODS, .
+This module contains the base code and interface of basic TODS.
 """
 from botiverse.bots.basic_TODS.utils import RuleBasedNLU, MostRecentDST, RandomDP, TemplateBasedNLG
 

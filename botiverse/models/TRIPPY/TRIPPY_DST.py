@@ -1,3 +1,7 @@
+"""
+This Module has base code and interfaces for TripPy Dialogue State Tracker.
+"""
+
 import torch
 from collections import OrderedDict
 
@@ -10,6 +14,27 @@ from botiverse.models.TRIPPY.TRIPPY import TRIPPY
 
 
 class TRIPPYDST:
+    """
+    TRIPPYDST is a class that represents the TripPy Dialogue State Tracker.
+
+    It provides methods for loading the model, training the model, updating the dialogue state,
+    getting the current dialogue state, deleting slots, resetting the tracker, and displaying the tracker information.
+    
+    :param domains: The list of domains to consider.
+    :type domains: list[str]
+    :param ontology_path: The path to the ontology file.
+    :type ontology_path: str
+    :param label_maps_path: The path to the label maps file.
+    :type label_maps_path: str
+    :param non_referable_slots: The list of non-referable slots.
+    :type non_referable_slots: list[str]
+    :param non_referable_pairs: The list of non-referable slot pairs.
+    :type non_referable_pairs: list[tuple[str, str]]
+    :param from_scratch: Whether to train the model from scratch.
+    :type from_scratch: bool
+    :param TRIPPY_config: The configuration for the TRIPPY model, defaults to TRIPPYConfig()
+    :type TRIPPY_config: TRIPPYConfig, optional
+    """
 
     def __init__(self, domains, ontology_path, label_maps_path, non_referable_slots, non_referable_pairs, from_scratch, TRIPPY_config=TRIPPYConfig()):
         self.domains = domains
@@ -30,7 +55,14 @@ class TRIPPYDST:
         self.history = []
 
     def load_model(self, model_path, test_path):
+      """
+      Load the trained model.
 
+      :param model_path: The path to the saved model.
+      :type model_path: str
+      :param test_path: The path to the test data for evaluation.
+      :type test_path: str
+      """
       if self.from_scratch == True:
           # Get saved weights
           state_dict = torch.load(model_path, map_location=self.device)
@@ -73,9 +105,34 @@ class TRIPPYDST:
 
 
     def train(self, train_path, dev_path, test_path, model_path):
+      """
+      Train the model.
+
+      :param train_path: The path to the training data.
+      :type train_path: str
+      :param dev_path: The path to the development data for evaluation during training.
+      :type dev_path: str
+      :param test_path: The path to the test data for evaluation after training.
+      :type test_path: str
+      :param model_path: The path to save the trained model.
+      :type model_path: str
+      """
       run(self.model, self.domains, self.slot_list, self.label_maps, train_path, dev_path, test_path, self.device, self.non_referable_slots, self.non_referable_pairs, model_path)
 
     def update_state(self, sys_utter, user_utter, inform_mem):
+      """
+      Update the dialogue state based on the system and user utterances.
+
+      :param sys_utter: The system utterance.
+      :type sys_utter: str
+      :param user_utter: The user utterance.
+      :type user_utter: str
+      :param inform_mem: The inform memory containing previous slot-value pairs.
+      :type inform_mem: dict[str, list[str]]
+      :return: The updated dialogue state.
+      :rtype: dict[str, str]
+      """
+
       # normalize utterances
       user_utter = ' '.join(normalize(user_utter))
       sys_utter = ' '.join(normalize(sys_utter))
@@ -87,9 +144,27 @@ class TRIPPYDST:
       return self.state.copy()
 
     def get_dialogue_state(self):
+      """
+      Get a copy of the current dialogue state.
+
+      :return: A copy of the dialogue state.
+      :rtype: dict[str, str]
+      """
       return self.state.copy()
 
     def delete_slots(self, domain, slot):
+      """
+      Delete slots from the dialogue state.
+
+      If a domain is specified, all slots in that domain will be deleted.
+      If a slot is specified, that specific slot will be deleted.
+      If neither domain nor slot is specified, all slots will be deleted.
+
+      :param domain: The domain to delete slots from.
+      :type domain: str
+      :param slot: The slot to delete.
+      :type slot: str
+      """
       keys = self.state.keys()
       if domain is not None:
         for key in keys:
@@ -103,6 +178,11 @@ class TRIPPYDST:
           del self.state[key]
 
     def reset(self):
+      """
+      Reset the dialogue state.
+
+      Remove all slots from the dialogue state and clear the history.
+      """
       keys = list(self.state.keys())
       for key in keys:
         del self.state[key]
@@ -111,6 +191,12 @@ class TRIPPYDST:
 
 
     def __str__(self):
+      """
+      Return a string representation of the TRIPPYDST object.
+
+      :return: A string representation of the object.
+      :rtype: str
+      """
       string = ''
       string = string + '\ndomains: ' + str(self.domains)
       string = string + '\nontology_path: ' + str(self.ontology_path)

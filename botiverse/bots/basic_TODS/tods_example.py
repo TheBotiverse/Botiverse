@@ -1,7 +1,7 @@
 """
 Example on using Rule-Based TODS.
 """
-from TODS import TODS
+from botiverse.bots.basic_TODS.basic_TODS import BasicTODS
 
 NAME = "boti"
 domains_slots = {"book-flight": ["source", "destination", "time"]}
@@ -25,7 +25,7 @@ slots_pattern = {
                     }
                 }
 
-chatbot = TODS(NAME, domains_slots, templates, domains_pattern, slots_pattern)
+chatbot = BasicTODS(NAME, domains_slots, templates, domains_pattern, slots_pattern)
 
 print(chatbot.get_dialogue_state())
 print(chatbot.infer("I want to book a flight"))

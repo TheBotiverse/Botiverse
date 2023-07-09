@@ -19,7 +19,8 @@
 
 import os, sys
 sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, os.path.abspath('../botiverse/TODS'))
+# sys.path.insert(0, 'd:/programing/programs/anaconda/envs/pytorch/lib/site-packages/gensim')
+# sys.path.insert(0, os.path.abspath('../botiverse/TODS'))
 
 project = 'Botiverse'
 copyright = '2023, Botiverse Org.'
@@ -48,6 +49,8 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+
+# autodoc_mock_imports = ['gtts', 'playsound', 'gensim', 'waveglow', 'pydub', 'gdown', 'librosa', 'soundfile', '_ufuncs']
 
 # -- Options for HTML output -------------------------------------------------
 
