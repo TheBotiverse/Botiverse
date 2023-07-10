@@ -2,7 +2,6 @@ import numpy as np
 import json
 from gtts import gTTS
 import tempfile
-import random
 import os
 from botiverse.models import TTS
 from playsound import playsound
@@ -10,6 +9,7 @@ from playsound import playsound
 from botiverse.models import LSTMClassifier
 from botiverse.preprocessors import Vocalize, Wav2Vec, Wav2Text, BertEmbedder, Frequency
 from botiverse.bots.Vocalizer.utils import voice_input
+
 
 
 class Vocalizer():
@@ -64,7 +64,7 @@ class Vocalizer():
             human_resp = voice_input(record_time=int(max_dur))
             human_resp = self.wav2text.transcribe(human_resp)
             selected_ind, score = self.bert_embeddings.closest_sentence(human_resp, intents, retun_ind=True)
-            print(f"you said: {human_resp} and the bot decided that you meant {intents[selected_ind]}")
+            print(f"you said: {human_resp} and the bot decided that you meant {intents[selected_ind]} with a score of {score}")
             
             # 3 - speak according to the chosen option
             speak_message = options[selected_ind]['Speak']
@@ -139,12 +139,17 @@ class SpeechClassifier():
         '''
         self.model.save(path+'.bot')
     
-    def load(self, path):
+    def load(self, path, **kwargs):
         '''
         Load the model from a file.
         :param path: The path to the file
         '''
-        self.model.load(path + '.bot')
+        if self.machine == 'lstm':
+            self.model = LSTMClassifier(**kwargs)
+            self.model.load(path + '.bot')
+        else:
+            self.model = self.machine
+            self.model.load(path + '.bot')
             
         
     
@@ -156,7 +161,6 @@ class SpeechClassifier():
         :return: The class of the audio file at the given path.
         '''
         vec = self.transformer.transform(path, strict_duration=False)
-        print(vec.shape)
         pred, prob = self.model.predict(vec)
         pred, prob = pred[0], prob[0]
         print("Probability of prediction: ", prob)

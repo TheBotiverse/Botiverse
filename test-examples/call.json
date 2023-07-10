@@ -23,12 +23,12 @@
         "max_duration": "3",
         "Options" : [
             {
-                "Intent": "Yes",
+                "Intent": "yes",
                 "Speak": "Okay. We will try our best to get the issue resolved.",
                 "Next": "C"
             },
             {
-                "Intent": "No",
+                "Intent": "no",
                 "Speak": "Okay. Please call us back if you have any issues.",
                 "Next": "Z"
             }
@@ -79,12 +79,12 @@
         "max_duration": "3",
         "Options": [
             {
-                "Intent": "Yes",
+                "Intent": "yes",
                 "Speak": "Alright.",
                 "Next": "YY"
             },
             {
-                "Intent": "No",
+                "Intent": "no",
                 "Speak": "Okay.!",
                 "Next": "Z"
             }
@@ -96,27 +96,27 @@
         "max_duration": "3",
         "Options": [
             {
-                "Intent": "One",
+                "Intent": "one",
                 "Speak": "Your rated the agent one out of five. and it has been recorded",
                 "Next": "Z"
             },
             {
-                "Intent": "Two",
+                "Intent": "two",
                 "Speak": "Your rated the agent two out of five. and it has been recorded",
                 "Next": "Z"
             },
             {
-                "Intent": "Three",
+                "Intent": "three",
                 "Speak": "Your rated the agent three out of five. and it has been recorded",
                 "Next": "Z"
             },
             {
-                "Intent": "Four",
+                "Intent": "four",
                 "Speak": "Your rated the agent four out of five. and it has been recorded",
                 "Next": "Z"
             },
             {
-                "Intent": "Five",
+                "Intent": "five",
                 "Speak": "Your rated the agent five out of five. and it has been recorded",
                 "Next": "Z"
             }
