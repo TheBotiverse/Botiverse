@@ -1,6 +1,24 @@
-numpy==1.22.4
-torch==1.7.0
-
-# To make this file:
-#     pip install pipreqs
-#     pipreqs ./ --force
+audiomentations
+cvxopt
+gdown
+gensim
+gTTS
+librosa
+matplotlib
+nltk
+numpy
+playsound
+PyAudio
+pydub
+scikit_learn
+scipy
+setuptools
+soundfile
+tokenizers
+torch
+torchaudio
+tqdm
+transformers
+umap
+umap_learn
+waveglow
