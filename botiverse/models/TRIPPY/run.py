@@ -46,7 +46,7 @@ def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, 
 
     # train
     print('Preprocessing train set...')
-    train_raw_data, train_data = prepare_data(train_json, slot_list, label_maps, TRIPPY_config.tokenizer, TRIPPY_config.max_len, domains, non_referable_slots, non_referable_pairs)
+    train_raw_data, train_data = prepare_data(train_json, slot_list, label_maps, TRIPPY_config.tokenizer, TRIPPY_config.max_len, domains, non_referable_slots, non_referable_pairs, TRIPPY_config.multiwoz)
     train_dataset = Dataset(train_data, n_slots, TRIPPY_config.oper2id, slot_list)
     train_sampler = torch.utils.data.RandomSampler(train_dataset)
     train_data_loader = torch.utils.data.DataLoader(train_dataset,
@@ -55,14 +55,14 @@ def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, 
 
     # dev
     print('Preprocessing dev set...')
-    dev_raw_data, dev_data = prepare_data(dev_json, slot_list, label_maps, TRIPPY_config.tokenizer, TRIPPY_config.max_len, domains, non_referable_slots, non_referable_pairs)
+    dev_raw_data, dev_data = prepare_data(dev_json, slot_list, label_maps, TRIPPY_config.tokenizer, TRIPPY_config.max_len, domains, non_referable_slots, non_referable_pairs, TRIPPY_config.multiwoz)
     dev_dataset = Dataset(dev_data, n_slots, TRIPPY_config.oper2id, slot_list)
     dev_data_loader = torch.utils.data.DataLoader(dev_dataset,
                                                   batch_size=TRIPPY_config.dev_batch_size)
 
     # test
     print('Preprocessing test set...')
-    test_raw_data, test_data = prepare_data(test_json, slot_list, label_maps, TRIPPY_config.tokenizer, TRIPPY_config.max_len, domains, non_referable_slots, non_referable_pairs)
+    test_raw_data, test_data = prepare_data(test_json, slot_list, label_maps, TRIPPY_config.tokenizer, TRIPPY_config.max_len, domains, non_referable_slots, non_referable_pairs, TRIPPY_config.multiwoz)
     test_dataset = Dataset(test_data, n_slots, TRIPPY_config.oper2id, slot_list)
     test_data_loader = torch.utils.data.DataLoader(test_dataset,
                                                    batch_size=TRIPPY_config.test_batch_size)
@@ -88,7 +88,7 @@ def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, 
     num_train_steps = len(train_data_loader) * TRIPPY_config.epochs
     num_warmup_steps = int(num_train_steps * TRIPPY_config.warmup_proportion)
 
-    optimizer = AdamW(optimizer_parameters, lr=LR, eps=TRIPPY_config.adam_epsilon)
+    optimizer = AdamW(optimizer_parameters, lr=TRIPPY_config.lr, eps=TRIPPY_config.adam_epsilon)
     scheduler = get_linear_schedule_with_warmup(
         optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=num_train_steps
     )
@@ -97,11 +97,11 @@ def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, 
     for epoch in range(TRIPPY_config.epochs):
         print(f'\nEpoch: {epoch} ---------------------------------------------------------------')
         print('Training the model...')
-        train(train_data_loader, model, optimizer, device, scheduler, n_slots, TRIPPY_config.ignore_index, TRIPPY_config.oper2id)
+        train(train_data_loader, model, optimizer, device, scheduler, n_slots, TRIPPY_config.ignore_idx, TRIPPY_config.oper2id)
         print('Evaluating the model on dev set...')
         # jaccard_score, macro_f1_score, all_f1_score = eval_f1_jac(dev_data_loader, model, device, n_slots)
         # joint_goal_acc, states, sentences, indices = eval_joint(dev_raw_data, dev_data, model, device, n_slots, slot_list, label_maps)
-        joint_goal_acc, per_slot_acc, macro_f1_score, all_f1_score = eval(dev_raw_data, dev_data, model, device, n_slots, slot_list, label_maps, TRIPPY_config.oper2id)
+        joint_goal_acc, per_slot_acc, macro_f1_score, all_f1_score = eval(dev_raw_data, dev_data, model, device, n_slots, slot_list, label_maps, TRIPPY_config.oper2id, TRIPPY_config.multiwoz)
         # print(f'Joint Goal Acc: {joint_goal_acc}, Jaccard Score: {jaccard_score}, Macro F1 Score: {macro_f1_score}')
         print(f'Joint Goal Acc: {joint_goal_acc}')
         print(f'Per Slot Acc: {per_slot_acc}')
@@ -114,7 +114,7 @@ def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, 
     print('Loading best model on dev set...')
     model.load_state_dict(torch.load(model_path))
     print('Evaluating the model on test set...')
-    joint_goal_acc, per_slot_acc, macro_f1_score, all_f1_score = eval(test_raw_data, test_data, model, device, n_slots, slot_list, label_maps, TRIPPY_config.oper2id)
+    joint_goal_acc, per_slot_acc, macro_f1_score, all_f1_score = eval(test_raw_data, test_data, model, device, n_slots, slot_list, label_maps, TRIPPY_config.oper2id, TRIPPY_config.multiwoz)
     print(f'Joint Goal Acc: {joint_goal_acc}')
     print(f'Per Slot Acc: {per_slot_acc}')
     print(f'Macro F1 Score: {macro_f1_score}')

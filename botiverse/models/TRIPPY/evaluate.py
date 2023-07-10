@@ -10,7 +10,7 @@ from tqdm import tqdm
 from botiverse.models.TRIPPY.utils import normalize, is_included, included_with_label_maps, create_span_output
 
 
-def get_informed_value(value, target, label_maps):
+def get_informed_value(value, target, label_maps, multiwoz):
   """
   Get the informed value based on the value and target, taking into account label maps.
 
@@ -27,8 +27,8 @@ def get_informed_value(value, target, label_maps):
   informed = False
   informed_value = value
 
-  value = ' '.join(normalize(value))
-  target = ' '.join(normalize(target))
+  value = ' '.join(normalize(value, multiwoz))
+  target = ' '.join(normalize(target, multiwoz))
 
   if value == target or is_included(value, target) or is_included(target, value):
     informed = True
@@ -41,7 +41,7 @@ def get_informed_value(value, target, label_maps):
   return informed_value
 
 
-def eval(raw_data, data, model, device, n_slots, slot_list, label_maps, oper2id):
+def eval(raw_data, data, model, device, n_slots, slot_list, label_maps, oper2id, multiwoz):
   """
   Evaluate the model on the given data.
 
@@ -70,7 +70,7 @@ def eval(raw_data, data, model, device, n_slots, slot_list, label_maps, oper2id)
   # normalize label_maps
   label_maps_tmp = {}
   for v in label_maps:
-      label_maps_tmp[' '.join(normalize(v))] = [' '.join(normalize(nv)) for nv in label_maps[v]]
+      label_maps_tmp[' '.join(normalize(v, multiwoz))] = [' '.join(normalize(nv, multiwoz)) for nv in label_maps[v]]
   label_maps = label_maps_tmp
 
 
@@ -175,16 +175,16 @@ def eval(raw_data, data, model, device, n_slots, slot_list, label_maps, oper2id)
         pred_val = pred_current_state[slot]
 
         # normalize values
-        val = ' '.join(normalize(val))
-        pred_val = ' '.join(normalize(pred_val))
+        val = ' '.join(normalize(val, multiwoz))
+        pred_val = ' '.join(normalize(pred_val, multiwoz))
 
         # handle inform
         if pred_val[0:3] == "§§ ":
           if pred_val[3:] != 'none':
-              pred_val = get_informed_value(pred_val[3:], val, label_maps)
+              pred_val = get_informed_value(pred_val[3:], val, label_maps, multiwoz)
         elif pred_val[0:2] == "§§":
             if pred_val[2:] != 'none':
-                pred_val = get_informed_value(pred_val[2:], val, label_maps)
+                pred_val = get_informed_value(pred_val[2:], val, label_maps, multiwoz)
 
         # match
         if pred_val == val:

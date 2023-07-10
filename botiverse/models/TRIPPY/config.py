@@ -5,9 +5,6 @@ This Module has the configuration class for TRIPPY.
 import tokenizers
 import os
 
-# TO DO: DELETE THIS MULTIWOZ CONST
-MULTIWOZ = True
-
 
 # Trippy configuration
 class TRIPPYConfig(object):
@@ -46,7 +43,7 @@ class TRIPPYConfig(object):
     :type adam_epsilon: float
     :param warmup_proportion: The proportion of warmup steps, defaults to 0.1.
     :type warmup_proportion: float
-    :param multiwoz: The path to the MultiWOZ dataset, defaults to MULTIWOZ.
+    :param multiwoz: The path to the MultiWOZ dataset, defaults to False.
     :type multiwoz: str
     """
     def __init__(self, 
@@ -65,7 +62,7 @@ class TRIPPYConfig(object):
                  lr=1e-4,
                  adam_epsilon=1e-6,
                  warmup_proportion=0.1,
-                 multiwoz=MULTIWOZ):
+                 multiwoz=False):
 
         self.max_len = max_len
         self.train_batch_size = train_batch_size

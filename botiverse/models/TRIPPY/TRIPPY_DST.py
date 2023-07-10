@@ -36,13 +36,14 @@ class TRIPPYDST:
     :type TRIPPY_config: TRIPPYConfig, optional
     """
 
-    def __init__(self, domains, ontology_path, label_maps_path, non_referable_slots, non_referable_pairs, from_scratch, TRIPPY_config=TRIPPYConfig()):
+    def __init__(self, domains, ontology_path, label_maps_path, non_referable_slots, non_referable_pairs, from_scratch, BERT_config, TRIPPY_config=TRIPPYConfig()):
         self.domains = domains
         self.ontology_path = ontology_path
         self.label_maps_path = label_maps_path
         self.non_referable_slots = non_referable_slots
         self.non_referable_pairs = non_referable_pairs
         self.from_scratch = from_scratch
+        self.BERT_config = BERT_config
         self.TRIPPY_config = TRIPPY_config
 
         slot_list, label_maps = get_ontology_label_maps(ontology_path, label_maps_path, domains)
@@ -51,7 +52,7 @@ class TRIPPYDST:
         self.label_maps = label_maps
         self.state = {}
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = TRIPPY(len(slot_list), TRIPPY_config.hid_dim, TRIPPY_config.n_oper, TRIPPY_config.dropout, from_scratch).to(self.device)
+        self.model = TRIPPY(len(slot_list), TRIPPY_config.hid_dim, TRIPPY_config.n_oper, TRIPPY_config.dropout, from_scratch, BERT_config, TRIPPY_config).to(self.device)
         self.history = []
 
     def save_model(self, model_path):
@@ -101,12 +102,12 @@ class TRIPPYDST:
       print('Model loaded successfully.')
       if test_path is not None:
         print('Preprocessing the data...')
-        test_raw_data, test_data = prepare_data(test_path, self.slot_list, self.label_maps, self.TRIPPY_config.tokenizer, self.TRIPPY_config.max_len, self.domains, self.non_referable_slots, self.non_referable_pairs)
+        test_raw_data, test_data = prepare_data(test_path, self.slot_list, self.label_maps, self.TRIPPY_config.tokenizer, self.TRIPPY_config.max_len, self.domains, self.non_referable_slots, self.non_referable_pairs, self.TRIPPY_config.multiwoz)
         test_dataset = Dataset(test_data, self.n_slots, self.TRIPPY_config.oper2id, self.slot_list)
         test_data_loader = torch.utils.data.DataLoader(test_dataset,
                                                        batch_size=self.TRIPPY_config.test_batch_size)
         print('Evaluating the model on the data...')
-        joint_goal_acc, per_slot_acc, macro_f1_score, all_f1_score = eval(test_raw_data, test_data, self.model, self.device, self.n_slots, self.slot_list, self.label_maps, self.TRIPPY_config.oper2id)
+        joint_goal_acc, per_slot_acc, macro_f1_score, all_f1_score = eval(test_raw_data, test_data, self.model, self.device, self.n_slots, self.slot_list, self.label_maps, self.TRIPPY_config.oper2id, self.TRIPPY_config.multiwoz)
         print(f'Joint Goal Acc: {joint_goal_acc}')
         print(f'Per Slot Acc: {per_slot_acc}')
         print(f'Macro F1 Score: {macro_f1_score}')
@@ -126,7 +127,7 @@ class TRIPPYDST:
       :param model_path: The path to save the trained model.
       :type model_path: str
       """
-      run(self.model, self.domains, self.slot_list, self.label_maps, train_path, dev_path, test_path, self.device, self.non_referable_slots, self.non_referable_pairs, model_path)
+      run(self.model, self.domains, self.slot_list, self.label_maps, train_path, dev_path, test_path, self.device, self.non_referable_slots, self.non_referable_pairs, model_path, self.TRIPPY_config)
 
     def update_state(self, sys_utter, user_utter, inform_mem):
       """
@@ -143,10 +144,10 @@ class TRIPPYDST:
       """
 
       # normalize utterances
-      user_utter = ' '.join(normalize(user_utter))
-      sys_utter = ' '.join(normalize(sys_utter))
+      user_utter = ' '.join(normalize(user_utter, self.TRIPPY_config.multiwoz))
+      sys_utter = ' '.join(normalize(sys_utter, self.TRIPPY_config.multiwoz))
       # delex the system utterance
-      sys_utter = ' '.join(mask_utterance(sys_utter, inform_mem, '[UNK]'))
+      sys_utter = ' '.join(mask_utterance(sys_utter, inform_mem, self.TRIPPY_config.multiwoz, '[UNK]'))
 
       self.state = infer(self.model, self.slot_list, self.state, self.history, sys_utter, user_utter, inform_mem, self.device, self.TRIPPY_config.oper2id, self.TRIPPY_config.tokenizer, self.TRIPPY_config.max_len)
       self.history = [user_utter, sys_utter] + self.history
