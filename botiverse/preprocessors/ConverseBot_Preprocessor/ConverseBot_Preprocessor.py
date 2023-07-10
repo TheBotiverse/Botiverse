@@ -3,12 +3,27 @@ from transformers import AutoTokenizer
 import numpy as np
 
 class ConverseBot_Preprocessor:
-    def __init__(self, dataset=None):# dataset structure is an array of multiturn conversations (each multiturn conversation is an array of strings)[["hi","hello","how are you?"], ["good","how about you?","i am fine"]]
+    ''''An interface that provides the required preprocessing for the ConverseBot bot'''
+    def __init__(self, dataset=None):
+        """
+        Initializes a ConverseBot_Preprocessor instance with an optional training dataset, note that the dataset structure is an array of multiturn conversations and each multiturn conversation is an array of strings, e.g., [["hi","hello","how are you?"], ["good","how about you?","i am fine"]]
+
+        :param dataset: Dataset to be processed.
+        :type dataset: list of list of str, optional
+
+        :returns: None
+        """
         self.data = dataset
         # create the t5 tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
 
     def process(self):
+        """
+        Processes the conversations dataset by cleaning it then combining each conversation into a single string (with [C] between each turn) and then tokenizing it.
+
+        :returns: DataFrame containing the processed conversations.
+        :rtype: DataFrame
+        """
         # separate conversations into text and target
         target_array = []
         text_array = []
@@ -42,6 +57,15 @@ class ConverseBot_Preprocessor:
 
     # process a single string
     def clean_string(self, string):
+        """
+        Cleans a string by removing certain spaces and new line characters.
+
+        :param string: The string to clean.
+        :type string: str
+
+        :returns: The cleaned string.
+        :rtype: str
+        """
         string = string.replace("\n", " ")
         # remove spaces at the beginning and end of the string
         string = string.strip()
@@ -56,6 +80,18 @@ class ConverseBot_Preprocessor:
 
     # tokenize a single string
     def tokenize_string(self, string, target=False):
+        """
+        Tokenizes a string.
+
+        :param string: The string to tokenize.
+        :type string: str
+
+        :param target: Indicates whether the string is a target.
+        :type target: bool, optional
+
+        :returns: Tokenized string.
+        :rtype: Dict[str, Tensor]
+        """
         tokens_obj = self.tokenizer(string, padding='max_length', truncation=True, max_length=512, return_tensors="pt")
         if target:
             tokens_obj['input_ids'][tokens_obj['input_ids'] == self.tokenizer.pad_token_id] = -100
@@ -63,10 +99,28 @@ class ConverseBot_Preprocessor:
 
     # decode a single string
     def decode_tokens(self, tokens):
+        """
+        Decodes a sequence of tokens.
+
+        :param tokens: The tokens to decode.
+        :type tokens: Tensor
+
+        :returns: The decoded string.
+        :rtype: str
+        """
         return self.tokenizer.decode(tokens, skip_special_tokens=True)
 
     # clean then tokenize a single string
     def process_string(self, string):
+        """
+        Cleans and tokenizes a conversational string.
+
+        :param string: The conversational string to process.
+        :type string: str
+
+        :returns: Processed string in token vector form.
+        :rtype: Dict[str, Tensor]
+        """
         string = self.clean_string(string)
         tokens_vector = self.tokenize_string(string)
         return tokens_vector
