@@ -5,6 +5,7 @@ This module contains the base code and interface of deep TODS .
 from botiverse.bots.deep_TODS.utils import RandomDP, PriorityDP, TemplateBasedNLG
 from botiverse.models.TRIPPY.config import TRIPPYConfig
 from botiverse.models.TRIPPY.TRIPPY_DST import TRIPPYDST
+from botiverse.models.BERT.config import BERTConfig
 
 import random
 
@@ -44,13 +45,13 @@ class DeepTODS:
   :param from_scratch: Indicates whether to use BERT model implemented from scratch in the library, defaults to False.
   :type from_scratch: bool
   """
-  def __init__(self, name, domains, ontology_path, label_maps_path, policy, start, templates, non_referable_slots=[], non_referable_pairs=[], from_scratch=False):
+  def __init__(self, name, domains, ontology_path, label_maps_path, policy, start, templates, non_referable_slots=[], non_referable_pairs=[], from_scratch=False, BERT_config=BERTConfig(), TRIPPY_config=TRIPPYConfig()):
     self.name = name
     self.domains = domains
     self.policy = policy
     self.start = start
     self.is_start = True
-    self.dst = TRIPPYDST(domains, ontology_path, label_maps_path, non_referable_slots, non_referable_pairs, from_scratch)
+    self.dst = TRIPPYDST(domains, ontology_path, label_maps_path, non_referable_slots, non_referable_pairs, from_scratch, BERT_config, TRIPPY_config)
     self.dpo = RandomDP() if policy == 'Random' else PriorityDP() if policy == 'Priority' else None
     self.nlg = TemplateBasedNLG(templates)
     self.sys_utter = ''

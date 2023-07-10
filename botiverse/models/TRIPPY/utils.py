@@ -2,8 +2,6 @@ import re
 import string
 import numpy as np
 
-from botiverse.models.TRIPPY.config import MULTIWOZ
-
 
 class RawDataInstance():
   """
@@ -186,7 +184,7 @@ class AverageMeter():
         self.avg = self.sum / self.count
 
 
-def normalize(text):
+def normalize(text, multiwoz):
   """
   Normalize the given text by converting it to lowercase and splitting it into tokens.
 
@@ -196,8 +194,7 @@ def normalize(text):
   :rtype: list[str]
   """
   text_lower = text.lower()
-  if MULTIWOZ == True:
-    # TODO: Delete MULTIWOZ
+  if multiwoz == True:
     text_norm = normalize_text(text_lower) # for mutliwoz only
   else:
     text_norm = text_lower
@@ -324,7 +321,7 @@ def create_span_output(output_start, output_end, padding_len, input_tokens):
   return final_output
 
 
-def mask_utterance(utter, inform_mem, replace_with='[UNK]'):
+def mask_utterance(utter, inform_mem, multiwoz, replace_with='[UNK]'):
   """
   Mask the utterance by replacing the informed values in the inform memory.
 
@@ -337,16 +334,14 @@ def mask_utterance(utter, inform_mem, replace_with='[UNK]'):
   :return: The masked utterance.
   :rtype: list[str]
   """
-  utter = normalize(utter)
+  utter = normalize(utter, multiwoz)
   for slot, informed_values in inform_mem.items():
     for informed_value in informed_values:
-      informed_tok = normalize(informed_value)
+      informed_tok = normalize(informed_value, multiwoz)
       for i in range(len(utter)):
         if utter[i:i + len(informed_tok)] == informed_tok:
           utter[i:i + len(informed_tok)] = [replace_with] * len(informed_tok)
   return utter
-
-#___preprocessing temp to be deleted________________________________________________________________________________________________________________
 
 
 def normalize_time(text):

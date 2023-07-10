@@ -50,7 +50,7 @@ def get_ontology_label_maps(ontology_path, label_maps_path, domains):
   return sorted(slot_list), label_maps
 
 
-def read_raw_data(data_path, slot_list, max_len, domains):
+def read_raw_data(data_path, slot_list, max_len, domains, multiwoz):
   """
   Read raw data from the JSON file and preprocess it.
 
@@ -91,8 +91,8 @@ def read_raw_data(data_path, slot_list, max_len, domains):
       sys_utter = turn['system_utterance']
 
       # normalize utterances
-      user_utter = ' '.join(normalize(user_utter))
-      sys_utter = ' '.join(normalize(sys_utter))
+      user_utter = ' '.join(normalize(user_utter, multiwoz))
+      sys_utter = ' '.join(normalize(sys_utter, multiwoz))
 
       # get the changed slots in this turn
       turn_slots = turn['turn_slots']
@@ -101,7 +101,7 @@ def read_raw_data(data_path, slot_list, max_len, domains):
       inform_mem = turn['system_act']
 
       # mask the system utterance by removing labels appeared in system acts
-      sys_utter = ' '.join(mask_utterance(sys_utter, inform_mem, '[UNK]'))
+      sys_utter = ' '.join(mask_utterance(sys_utter, inform_mem, multiwoz, '[UNK]'))
 
       # append current instance
       raw_data.append(RawDataInstance(dial_idx,
@@ -264,7 +264,7 @@ def create_inputs(history, user_utter, sys_utter, tokenizer, max_len):
   return input, ids, mask, token_type_ids, tok_input_offsets, tok_input_tokens, padding_len
 
 
-def is_informed(value, target, label_maps):
+def is_informed(value, target, label_maps, multiwoz):
   """
   Check if a value is informed by the system given a target value and label maps.
 
@@ -284,7 +284,7 @@ def is_informed(value, target, label_maps):
   informed = False
   informed_value = 'none'
 
-  target = ' '.join(normalize(target))
+  target = ' '.join(normalize(target, multiwoz))
 
   if value == target or is_included(value, target) or is_included(target, value):
     informed = True
@@ -350,7 +350,7 @@ def get_refered_slot(target_value, slot, last_state, non_referable_slots, non_re
     return referred_slot
 
 
-def create_labels(target_value, slot, last_state, input, tok_input_offsets, inform_mem, label_maps, padding_len, max_len, non_referable_slots, non_referable_pairs):
+def create_labels(target_value, slot, last_state, input, tok_input_offsets, inform_mem, label_maps, padding_len, max_len, non_referable_slots, non_referable_pairs, multiwoz):
   """
   Create the target operation and the span labels for a slot.
 
@@ -414,7 +414,7 @@ def create_labels(target_value, slot, last_state, input, tok_input_offsets, info
     informed = False
     if slot in inform_mem:
       assert len(inform_mem[slot]) == 1, 'greater than 1'
-      informed, informed_value = is_informed(inform_mem[slot][0], target_value, label_maps)
+      informed, informed_value = is_informed(inform_mem[slot][0], target_value, label_maps, multiwoz)
 
     refered_slot = get_refered_slot(target_value, slot, last_state, non_referable_slots, non_referable_pairs, label_maps)
 
@@ -430,7 +430,7 @@ def create_labels(target_value, slot, last_state, input, tok_input_offsets, info
   return oper, span, span_start, span_end, refered_slot, informed_value
 
 
-def create_data(raw_data, slot_list, label_maps, tokenizer, max_len, non_referable_slots, non_referable_pairs):
+def create_data(raw_data, slot_list, label_maps, tokenizer, max_len, non_referable_slots, non_referable_pairs, multiwoz):
   """
   Create the data instances for training or evaluation.
 
@@ -519,7 +519,8 @@ def create_data(raw_data, slot_list, label_maps, tokenizer, max_len, non_referab
                                       padding_len,
                                       max_len,
                                       non_referable_slots,
-                                      non_referable_pairs)
+                                      non_referable_pairs,
+                                      multiwoz)
 
       if slot in cur_state and target_value == cur_state[slot] and oper in ['dontcare', 'yes', 'no', 'refer']:
         oper = 'carryover'
@@ -578,7 +579,7 @@ def create_data(raw_data, slot_list, label_maps, tokenizer, max_len, non_referab
   return data
 
 
-def prepare_data(data_path, slot_list, label_maps, tokenizer, max_len, domains, non_referable_slots, non_referable_pairs):
+def prepare_data(data_path, slot_list, label_maps, tokenizer, max_len, domains, non_referable_slots, non_referable_pairs, multiwoz):
   """
   Prepare the data for training or evaluation, this usually the function you want to call to preprocess the data for
   TripPy model, it encapsulates the whole process of preprcessing the data by calling the other functions in this
@@ -614,10 +615,10 @@ def prepare_data(data_path, slot_list, label_maps, tokenizer, max_len, domains, 
 
 
   # create raw data
-  raw_data = read_raw_data(data_path, slot_list, max_len, domains)
+  raw_data = read_raw_data(data_path, slot_list, max_len, domains, multiwoz)
 
   # create data
-  data = create_data(raw_data, slot_list, label_maps, tokenizer, max_len, non_referable_slots, non_referable_pairs)
+  data = create_data(raw_data, slot_list, label_maps, tokenizer, max_len, non_referable_slots, non_referable_pairs, multiwoz)
 
   return raw_data, data
 

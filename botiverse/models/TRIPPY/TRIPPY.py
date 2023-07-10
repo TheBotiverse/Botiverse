@@ -8,6 +8,7 @@ from transformers import BertModel
 
 from botiverse.models.BERT.BERT import Bert
 from botiverse.models.BERT.config import BERTConfig
+from botiverse.models.TRIPPY.config import TRIPPYConfig
 from botiverse.models.BERT.utils import LoadPretrainedWeights
 
 class TRIPPY(nn.Module):
@@ -30,7 +31,7 @@ class TRIPPY(nn.Module):
   :type BERT_config: BERTConfig
   """
 
-  def __init__(self, n_slots, hid_dim, n_oper, dropout, from_scratch, BERT_config=BERTConfig()):
+  def __init__(self, n_slots, hid_dim, n_oper, dropout, from_scratch, BERT_config=BERTConfig(), TRIPPY_config=TRIPPYConfig()):
     super(TRIPPY, self).__init__()
 
     self.hid_dim = hid_dim
