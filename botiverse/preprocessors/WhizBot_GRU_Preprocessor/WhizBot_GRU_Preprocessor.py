@@ -6,7 +6,16 @@ from tokenizers.pre_tokenizers import Whitespace
 from tokenizers.models import BPE
 
 class WhizBot_GRU_Preprocessor:
+    '''An interface that provides the required preprocessing for the WhizBot_GRU bot'''
     def __init__(self, file_path):
+        """
+        Constructs a WhizBot_GRU_Preprocessor instance with the file path of the dataset.
+
+        :param file_path: Path to the .json file if the dataset.
+        :type file_path: str
+
+        :returns: None
+        """
         self.file_path = file_path
         self.text_col = "text"
         self.label_col = "label"
@@ -26,6 +35,12 @@ class WhizBot_GRU_Preprocessor:
         self.data = self.data.reset_index(drop=True)
 
     def process(self):
+        """
+        loads the data, cleans it, tokenizes it, pads it and removes outlier sequances.
+
+        :returns: Processed data.
+        :rtype: DataFrame
+        """
         # text processing
         self.data['text'] = self.data['text'].apply(self.clean_string)
         # byte pair encoding tokenizer
@@ -46,7 +61,7 @@ class WhizBot_GRU_Preprocessor:
         # pad the text sequences
         padding_id = self.tokenizer.token_to_id("<pad>")
         self.longest_sequence = self.data['text'].apply(lambda x: len(x)).max()
-        self.data['text'] = self.data['text'].apply(lambda x: torch.cat((x, torch.zeros(self.longest_sequence - len(x)).fill_(padding_id).long())))# HMMM zeros
+        self.data['text'] = self.data['text'].apply(lambda x: torch.cat((x, torch.zeros(self.longest_sequence - len(x)).fill_(padding_id).long())))
         # make a dictionary of all labels
         self.label_dict = {}
         for i in range(len(self.data)):
@@ -60,6 +75,15 @@ class WhizBot_GRU_Preprocessor:
 
     # process a single string
     def clean_string(self, string):
+        """
+        Cleans the given text string by removing punctuation, converting to lowercase and removing non-ascii characters.
+
+        :param string: Provided string.
+        :type string: str
+
+        :returns: Cleaned string.
+        :rtype: str
+        """
         string = string.lower()
         string = string.replace('[^\w\s]','')
         string = string.encode("ascii", "ignore").decode()
@@ -67,12 +91,30 @@ class WhizBot_GRU_Preprocessor:
 
     # tokenize a single string
     def tokenize_string(self, string):
+        """
+        Tokenizes the given text string.
+
+        :param string: Provided string.
+        :type string: str
+
+        :returns: Tokenizens Id.
+        :rtype: Tensor
+        """
         tokens_vector = self.tokenizer.encode(string).ids
         tokens_vector = torch.tensor(tokens_vector)
         return tokens_vector
 
     # process a single string
     def process_string(self, string):
+        """
+        Cleans and tokenizes a given text string, the pads it to the longest sequence length (for batch processing).
+
+        :param string: Provided string.
+        :type string: str
+
+        :returns: Processed padded tokens ids.
+        :rtype: Tensor
+        """
         string = self.clean_string(string)
         tokens_vector = self.tokenize_string(string)
         padded_tokens_vector = torch.cat((tokens_vector, torch.zeros(self.longest_sequence - len(tokens_vector)).long()))
@@ -80,4 +122,13 @@ class WhizBot_GRU_Preprocessor:
 
     # pad a sequence (to make batch compatible)
     def pad_sequence(self, sequence):
+        """
+        Pads a given sequence to make it compatible with batch processing.
+
+        :param sequence: Provided sequence.
+        :type sequence: Tensor
+
+        :returns: Padded sequence.
+        :rtype: Tensor
+        """
         return torch.nn.utils.rnn.pad_sequence(sequence.tolist(), batch_first=True, padding_value=self.tokenizer.token_to_id("[PAD]"))
