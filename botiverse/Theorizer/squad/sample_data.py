@@ -226,7 +226,7 @@ def read_sample_probs(sample_probs_path):
     return sample_probs
 
 def select_with_default_sampel_probs(sentence):
-    sample_probs_path = "squad/dataset/train.probs.pkl"
+    sample_probs_path = "botiverse/Theorizer/squad/dataset/train.probs.pkl"
     sample_probs = read_sample_probs(sample_probs_path)
     selection = select(
         "Bob is eating a delicious cake in Vancouver.", sample_probs)

@@ -13,7 +13,7 @@ FUNCTION_WORDS = set(
     [
         word.rstrip().lower()
         for word in open(
-            "squad/info_extractor.py", "r", encoding="utf-8"
+            "botiverse/Theorizer/squad/info_extractor.py", "r", encoding="utf-8"
         ).readlines()
     ]
 )

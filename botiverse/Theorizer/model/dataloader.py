@@ -11,7 +11,7 @@ from tqdm import tqdm
 import pickle as pkl
 import numpy as np
 from .utils import *
-from squad.squad_example import SquadExample, SquadProcessedExample
+from botiverse.Theorizer.squad.squad_example import SquadExample, SquadProcessedExample
 from transformers import (
     WEIGHTS_NAME,
     CONFIG_NAME,
