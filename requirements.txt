@@ -21,3 +21,4 @@ transformers
 umap
 umap_learn
 waveglow
+audioread
