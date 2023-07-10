@@ -88,12 +88,15 @@ class ConverseBot:
                 total += batch_labels.size(0)
         print('Validation Loss: ', loss/total)
 
-    def infer(self, string):
+    def infer(self, string, temperature=0.9):
         """
         Inference on the model using the input string.
 
         :param string: The string to provide for inference.
         :type string: str
+
+        :param temperature: The temperature of the softmax function, the higher its value the flatter the probability distribution of the next token will be.
+        :type temperature: float, optional
 
         :returns: Inference result from the model.
         :rtype: str
@@ -103,10 +106,10 @@ class ConverseBot:
         input_ids= token_obj['input_ids'].to(self.device)
         attention_mask = token_obj['attention_mask'].to(self.device)
         if self.from_scratch:
-            output_tokens = self.model.generate(input_ids=input_ids, attention_mask=attention_mask, max_length=250)
+            output_tokens = self.model.generate(input_ids=input_ids, attention_mask=attention_mask, max_length=250, temperature=temperature)
             return self.preprocessor.decode_tokens(output_tokens)
         else:
-            output_tokens = self.model.generate(input_ids=input_ids, attention_mask=attention_mask, max_length=250, num_beams=5, early_stopping=True)
+            output_tokens = self.model.generate(input_ids=input_ids, attention_mask=attention_mask, max_length=250, num_beams=5, early_stopping=True, temperature=temperature)
             return self.preprocessor.decode_tokens(output_tokens[0])
 
     # save a model locally

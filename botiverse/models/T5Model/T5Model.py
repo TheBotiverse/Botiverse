@@ -39,6 +39,7 @@ class AttentionModule(nn.Module):
         :return: None
         """
         super().__init__()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.is_decoder = is_decoder
         self.has_positional_encoding = has_positional_encoding
         self.num_positional_encoding_buckets = num_positional_encoding_buckets
@@ -55,8 +56,6 @@ class AttentionModule(nn.Module):
 
         if self.has_positional_encoding:
             self.relative_attention_bias = nn.Embedding(self.num_positional_encoding_buckets, self.n_heads)
-        
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
   def relative_positional_encoding(self, relative_position, bidirectional=True, num_buckets=32, max_distance=128):
       """
@@ -114,6 +113,7 @@ class AttentionModule(nn.Module):
       :return: Positional embeddings.
       :rtype: Tensor
       """
+      self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
       context_position = torch.arange(query_length, dtype=torch.long, device=self.device)[:, None]
       memory_position = torch.arange(key_length, dtype=torch.long, device=self.device)[None, :]
       relative_position = memory_position - context_position
@@ -181,9 +181,9 @@ class AttentionModule(nn.Module):
           if not self.has_positional_encoding:
               position_bias = torch.zeros(
                   (1, self.n_heads, real_seq_length, key_length), device=scores.device, dtype=scores.dtype
-              )
+              ).to(self.device)
           else:
-              position_bias = self.compute_bias(real_seq_length, key_length, device=scores.device)
+              position_bias = self.compute_bias(real_seq_length, key_length)
 
           if mask is not None:
               position_bias = position_bias + mask # mask here is not 0 and 1 but -inf and 0
@@ -230,6 +230,7 @@ class DenseGatedActDenseModule(nn.Module):
         :return: None
         '''
         super().__init__()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.wi_0 = nn.Linear(d_model, d_ff, bias=False)
         self.wi_1 = nn.Linear(d_model, d_ff, bias=False)
         self.wo = nn.Linear(d_ff, d_model, bias=False)
@@ -270,7 +271,8 @@ class LayerNormModule(nn.Module):
     :return: None
     '''
     super().__init__()
-    self.weight = nn.Parameter(torch.ones(layer_size))
+    self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    self.weight = nn.Parameter(torch.ones(layer_size).to(self.device))
     self.epsilon = eps
   def forward(self, hidden_states):
     mean_square = hidden_states.to(torch.float32).pow(2).mean(-1, keepdim=True)
@@ -278,10 +280,9 @@ class LayerNormModule(nn.Module):
     return self.weight * hidden_states
 
 class FFModule(nn.Module):
+  '''A class used to execute a Feed-Forward Neural Network module.'''
   def __init__(self,
                 dropout_rate=0.1):
-        '''A class used to execute a Feed-Forward Neural Network module.'''
-        super().__init__()
         '''
         Initializes the FFModule class with the given parameters (the feed-forward block in the Transformer).
 
@@ -291,6 +292,8 @@ class FFModule(nn.Module):
         :return: Output tensor after applying the FFN.
         :rtype: Tensor
         '''
+        super().__init__()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.DenseReluDense = DenseGatedActDenseModule()
         self.layer_norm = LayerNormModule()
         self.dropout = nn.Dropout(dropout_rate)
@@ -331,6 +334,7 @@ class SelfAttentionModule(nn.Module):
     :return: None
     """
     super().__init__()
+    self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     self.SelfAttention = AttentionModule(is_decoder, has_positional_encoding=has_positional_encoding)
     self.layer_norm = LayerNormModule()
     self.dropout = nn.Dropout(dropout_rate)
@@ -364,7 +368,6 @@ class SelfAttentionModule(nn.Module):
 class EncoderBlock(nn.Module):
   '''A class used for the encoder block of the transformer model.'''
   def __init__(self, has_positional_encoding=False):
-    super().__init__()
     """
     Initializes the EncoderBlock class with the given parameters.
 
@@ -373,6 +376,8 @@ class EncoderBlock(nn.Module):
 
     :return: None
     """
+    super().__init__()
+    self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     self.layer = nn.ModuleList()
     self.layer.append(SelfAttentionModule(is_decoder=False, has_positional_encoding=has_positional_encoding))
     self.layer.append(FFModule())
@@ -417,6 +422,7 @@ class EncoderModule(nn.Module):
     :return: None
     """
     super().__init__()
+    self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     self.embed_tokens = embed_tokens
     self.block = nn.ModuleList(
             [EncoderBlock(has_positional_encoding=bool(i == 0)) for i in range(num_layers)]
@@ -443,7 +449,7 @@ class EncoderModule(nn.Module):
     inputs_embeds = self.embed_tokens(input_ids)
     
     if attention_mask is None:
-      attention_mask = torch.ones(input_shape)
+      attention_mask = torch.ones(input_shape).to(self.device)
     final_attention_mask = attention_mask.to(dtype=torch.float32)
     final_attention_mask = (1.0 - final_attention_mask) * torch.finfo(torch.float32).min
 
@@ -474,6 +480,7 @@ class CrossAttentionModule(nn.Module):
     :return: None
     """
     super().__init__()
+    self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     self.EncDecAttention = AttentionModule(is_decoder=True, has_positional_encoding=False)
     self.layer_norm = LayerNormModule()
     self.dropout = nn.Dropout(dropout_rate)
@@ -516,6 +523,7 @@ class DecoderBlock(nn.Module):
         :return: None
         """
         super().__init__()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.layer = nn.ModuleList()
         self.layer.append(SelfAttentionModule(is_decoder=True, has_positional_encoding=has_positional_encoding))
         self.layer.append(CrossAttentionModule())
@@ -586,9 +594,8 @@ class DecoderModule(nn.Module):
     :return: None
     """
     super().__init__()
-
+    self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     self.embed_tokens = embed_tokens
-
     self.block = nn.ModuleList(
         [DecoderBlock(has_positional_encoding=bool(i == 0)) for i in range(num_layers)]
     )
@@ -625,14 +632,14 @@ class DecoderModule(nn.Module):
     inputs_embeds = self.embed_tokens(input_ids)
 
     if attention_mask is None:
-      attention_mask = torch.ones(input_shape)
+      attention_mask = torch.ones(input_shape).to(self.device)
     seq_length = input_shape[1]
-    lower_triangular_mask = torch.tril(torch.ones((seq_length, seq_length))).view(1, 1, seq_length, seq_length)
+    lower_triangular_mask = torch.tril(torch.ones((seq_length, seq_length))).view(1, 1, seq_length, seq_length).to(self.device)
     final_attention_mask = lower_triangular_mask * attention_mask
     final_attention_mask = (1.0 - final_attention_mask) * torch.finfo(torch.float32).min
     
     if encoder_attention_mask is None:
-      encoder_attention_mask = torch.ones((encoder_hidden_states.size(0), encoder_hidden_states.size(1)))
+      encoder_attention_mask = torch.ones((encoder_hidden_states.size(0), encoder_hidden_states.size(1))).to(self.device)
     encoder_attention_mask = encoder_attention_mask.to(dtype=torch.float32)
     encoder_attention_mask = (1.0 - encoder_attention_mask) * torch.finfo(torch.float32).min
 
@@ -668,6 +675,7 @@ class T5Model(nn.Module):
         :return: None
         """
         super().__init__()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.shared = nn.Embedding(vocab_size, d_model)
         self.encoder = EncoderModule(self.shared)
         self.decoder = DecoderModule(self.shared)
@@ -718,7 +726,8 @@ class T5Model(nn.Module):
       self,
       input_ids=None,
       attention_mask=None,
-      max_length=10):
+      max_length=10,
+      temperature=1.0):
       """
       Generates output sequence given input_ids and attention_mask.
 
@@ -731,6 +740,9 @@ class T5Model(nn.Module):
       :param max_length: The maximum length of the sequence to be generated.
       :type max_length: int, optional
 
+      :param temperature: The temperature of the softmax function, the higher its value the flatter the probability distribution of the next token will be.
+      :type temperature: float, optional
+
       :return: The IDs of the generated tokens.
       :rtype: Tensor
       """
@@ -741,19 +753,19 @@ class T5Model(nn.Module):
           attention_mask=attention_mask
       )
       # autoregressive generation
-      generated_ids = [torch.tensor([0])]# start_token id = 0
-      cur_ids = torch.zeros((input_ids.size(0), 1)).long()# start_token id = 0
+      generated_ids = [torch.tensor([0]).to(self.device)]
+      cur_ids = torch.zeros((input_ids.size(0), 1)).long().to(self.device)
       # genrate until max_length or eos_token
       for _ in range(max_length):
         decoder_outputs = self.decoder(
             input_ids=cur_ids,
             encoder_hidden_states=encoder_outputs
         )
-        lm_logits = self.lm_head(decoder_outputs) # no need for softmax
-        next_token_logits = lm_logits[:, -1, :]
-        next_token_id = torch.argmax(next_token_logits, dim=-1)
+        lm_logits = self.lm_head(decoder_outputs)
+        next_token_logits = lm_logits[:, -1, :] / temperature
+        next_token_id = torch.multinomial(torch.softmax(next_token_logits, dim=-1), num_samples=1)[0]
         generated_ids.append(next_token_id)
         cur_ids = torch.cat([cur_ids, next_token_id.unsqueeze(-1)], dim=-1)
-        if next_token_id == 1: # eos_token
+        if next_token_id == 1:
           break
       return torch.cat(generated_ids, dim=-1)
