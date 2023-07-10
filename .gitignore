@@ -29,3 +29,4 @@ botiverse/preprocessors/Vocalize/__MACOSX/._noises
 *.DS_Store
 *.pth
 *.bot
+*.pt

@@ -198,7 +198,7 @@ class LSTMClassifier(nn.Module):
             val_size = int(val_ratio * len(Xt))
             Xt, Xv = Xt[:-val_size], Xt[-val_size:]
             yt, yv = yt[:-val_size], yt[-val_size:]
-        
+            self.Xv, self.yv = Xv, yv
                 
         optimizer = torch.optim.Adam(self.parameters(), lr=λ, weight_decay=α)
         print("Training the LSTMClassifier...")

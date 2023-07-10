@@ -29,14 +29,13 @@ class basic_chatbot:
         self.machine = machine
         self.repr = repr
         
-        
         if repr == 'glove': 
             self.transformer = GloVe()
-        if repr == 'tf-idf':
+        elif repr == 'tf-idf':
             self.transformer = TF_IDF()
-        if repr == 'tf-idf-glove':
+        elif repr == 'tf-idf-glove':
             self.transformer = TF_IDF_GLOVE()
-        if repr == 'bow':
+        elif repr == 'bow':
             self.transformer = BoW()
         elif type(repr) != str:
             # if machine or transform is not a string, then assume it is a model
@@ -109,7 +108,7 @@ class basic_chatbot:
             
         if self.machine == 'nn':
             self.model = NeuralNet(structure=[X.shape[1], 12, len(self.classes)], activation='sigmoid')
-            max_epochs = max_epochs if max_epochs is not None else 50 * len(self.classes)
+            max_epochs = max_epochs if max_epochs is not None else 30 * len(self.classes)
             if early_stop:
                 self.model.fit(X, y, batch_size=1, epochs=max_epochs, λ = 0.02, eval_train=True, val_split=0.2, patience=100)
                 self.model.fit(X, y, batch_size=1, epochs=max_epochs, λ = 0.02, eval_train=True, val_split=0.0)
@@ -160,7 +159,7 @@ class basic_chatbot:
                 if hasattr(self.transformer, 'all_words'):  self.transformer.all_words = self.all_words
                     
                 
-    def infer(self, prompt, confidence=None):
+    def infer(self, prompt, confidence=None, test=False):
         """
         Infer a suitable response to the given prompt.
         
@@ -179,4 +178,5 @@ class basic_chatbot:
         if tag_prob < confidence: return "Could you rephrase that?"
         for intent in self.raw_data:
             if tag == intent["tag"]:
+                if test: return tag
                 return np.random.choice(intent['responses'])

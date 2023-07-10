@@ -46,6 +46,7 @@ class Wav2Vec():
         print("Transforming audio files into embeddings...")
         for word in tqdm(words):
             for i, file in enumerate(os.listdir(f"dataset/{word}")):
+                if not file.endswith(".wav"): continue
                 waveform, sr = torchaudio.load(f"dataset/{word}/{file}")
                 # resample if sr != 24K
                 waveform = torchaudio.transforms.Resample(sr, self.sample_rate)(waveform)
@@ -64,8 +65,15 @@ class Wav2Vec():
                 waveform = waveform.squeeze()
                 waveform = waveform.detach().numpy()
 
-                for _ in range(n):
-                    waveform = self.augment(samples=waveform, sample_rate=self.sample_rate)
+                if n >0:
+                    for _ in range(n):
+                        waveform = self.augment(samples=waveform, sample_rate=self.sample_rate)
+                        inputs = self.extractor(waveform, return_tensors="pt", padding=True, sampling_rate=self.sample_rate)
+                        features = self.model(inputs.input_values).last_hidden_state
+                        features = features.squeeze().detach().numpy()
+                        X.append(features)
+                        y.append(words.index(word))
+                else:
                     inputs = self.extractor(waveform, return_tensors="pt", padding=True, sampling_rate=self.sample_rate)
                     features = self.model(inputs.input_values).last_hidden_state
                     features = features.squeeze().detach().numpy()

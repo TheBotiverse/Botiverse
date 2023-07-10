@@ -41,7 +41,7 @@ class Frequency():
         Given a folder dataset with folders each containing audio files, this returns a table of spectra in the form of a numpy array X and a table of classes in the form of a numpy array y.
         :param: words: A list of words which are the classes of the speech classifier.
         :param: n: The number of times to augment each audio file.
-        '''
+        '''        
         # may be needed in the future (draft)
         sounds_per_word = len(os.listdir(f"dataset/{words[0]}"))
         self.N = len(words) * sounds_per_word
@@ -50,6 +50,7 @@ class Frequency():
         x_data, y_data = [], []
         for word in tqdm(words):
             for i, file in enumerate(os.listdir(f"dataset/{word}")):
+                if not file.endswith(".wav"): continue
                 waveform, sr = torchaudio.load(f"dataset/{word}/{file}")
                 waveform = torchaudio.transforms.Resample(sr, self.sample_rate)(waveform)
 
@@ -64,15 +65,23 @@ class Frequency():
                     waveform = waveform[:, :sample_dur]     
                 
                 waveform = waveform.numpy()
-                for _ in range(n):
-                    waveform = self.augment(waveform, sample_rate=self.sample_rate)
+                if n > 0:
+                    for _ in range(n):
+                        waveform = self.augment(waveform, sample_rate=self.sample_rate)
+                        spectrum = self.transform_func(torch.from_numpy(waveform))
+                        spectrum = librosa.power_to_db(spectrum[0]) if self.is_log else spectrum[0]
+                        # transpose to get (time, freq) instead of (freq, time)
+                        spectrum = spectrum.T
+                        x_data.append(spectrum)
+                        y_data.append(words.index(word))                
+                else:
                     spectrum = self.transform_func(torch.from_numpy(waveform))
                     spectrum = librosa.power_to_db(spectrum[0]) if self.is_log else spectrum[0]
                     # transpose to get (time, freq) instead of (freq, time)
                     spectrum = spectrum.T
                     x_data.append(spectrum)
-                    y_data.append(words.index(word))                
-            
+                    y_data.append(words.index(word))
+                    
         x_data, y_data = np.array(x_data), np.array(y_data)
         
         return x_data, y_data

@@ -3,6 +3,7 @@ import json
 from gtts import gTTS
 import tempfile
 import random
+import os
 from botiverse.models import TTS
 from playsound import playsound
 
@@ -101,21 +102,19 @@ class SpeechClassifier():
             raise ValueError(f"Invalid representation {repr}. Expected wav2vec, mfcc or spectrogram.")
 
 
-    def generate_data(self, n=3, force_download=False, **kwargs):
+    def generate_read_data(self, n=3, regenerate=False, force_download_noise=False, **kwargs):
         '''
         Generate audio data for the words specified during init.
         :param n: The number of audio files to generate for each word.
         '''
-        V = Vocalize(self.words)
-        Vocalize.corrupt_dataset(self.words, sample_rate=self.samplerate, force_download=force_download)
+        # if there is no dataset folder or if the regenerate flag is set, generate the dataset
+        if regenerate or not os.path.exists('dataset'):
+            V = Vocalize(self.words)
+            Vocalize.corrupt_dataset(self.words, sample_rate=self.samplerate, force_download=force_download_noise)
         X, y = self.transformer.transform_list(self.words, n, **kwargs)
-        print(X.shape, y.shape)
-        # print numpy types
-        print(X.dtype, y.dtype)
         return X, y
 
-
-    def fit(self, X, y,  λ=0.001, α=0.01, patience=50, max_epochs=600, **kwargs):
+    def fit(self, X, y,  λ=0.001, α=0.01, hidden=128, patience=50, max_epochs=600, **kwargs):
         '''
         Train the speech classifier model.
         :param λ: The learning rate parameter.
@@ -125,7 +124,7 @@ class SpeechClassifier():
         '''
         print(X.shape)
         if self.machine == 'lstm':
-            self.model = LSTMClassifier(X.shape[2], 128, len(self.words))
+            self.model = LSTMClassifier(X.shape[2], hidden, len(self.words))
             self.model.fit(X, y,  λ, α, max_epochs, patience, **kwargs)
         elif type(self.machine) != str:
             self.model = self.machine
