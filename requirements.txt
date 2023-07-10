@@ -8,7 +8,6 @@ matplotlib
 nltk
 numpy
 playsound
-PyAudio
 pydub
 scikit_learn
 scipy
