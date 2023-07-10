@@ -54,6 +54,15 @@ class TRIPPYDST:
         self.model = TRIPPY(len(slot_list), TRIPPY_config.hid_dim, TRIPPY_config.n_oper, TRIPPY_config.dropout, from_scratch).to(self.device)
         self.history = []
 
+    def save_model(self, model_path):
+        """
+        Save the trained model.
+
+        :param model_path: The path to save the model.
+        :type model_path: str
+        """
+        torch.save(self.model.state_dict(), model_path)
+
     def load_model(self, model_path, test_path):
       """
       Load the trained model.
@@ -82,7 +91,7 @@ class TRIPPYDST:
           new_state_dict = OrderedDict()
           for i in range(len(new_keys)):
               new_state_dict[new_keys[i]] = weights[i]
-              print(old_keys[i], '->', new_keys[i])
+              # print(old_keys[i], '->', new_keys[i])
 
           self.model.load_state_dict(new_state_dict)
 
@@ -95,7 +104,7 @@ class TRIPPYDST:
         test_raw_data, test_data = prepare_data(test_path, self.slot_list, self.label_maps, self.TRIPPY_config.tokenizer, self.TRIPPY_config.max_len, self.domains, self.non_referable_slots, self.non_referable_pairs)
         test_dataset = Dataset(test_data, self.n_slots, self.TRIPPY_config.oper2id, self.slot_list)
         test_data_loader = torch.utils.data.DataLoader(test_dataset,
-                                                       batch_size=TEST_BATCH_SIZE)
+                                                       batch_size=self.TRIPPY_config.test_batch_size)
         print('Evaluating the model on the data...')
         joint_goal_acc, per_slot_acc, macro_f1_score, all_f1_score = eval(test_raw_data, test_data, self.model, self.device, self.n_slots, self.slot_list, self.label_maps, self.TRIPPY_config.oper2id)
         print(f'Joint Goal Acc: {joint_goal_acc}')

@@ -54,7 +54,7 @@ class PriorityDP:
       :rtype: str
       """
       string = ''
-      string = string + '\PriorityDP'
+      string = string + '\nPriorityDP'
       return string
 
 
@@ -158,8 +158,12 @@ class TemplateBasedNLG:
       :type idx: int
 
       :return: The generated system utterance and system act.
-      :rtype: tuple[str, list]
+      :rtype: tuple[str, list] or None
       """
+
+      if idx < 0 or idx >= len(self.templates):
+        return None, None
+
       return self.templates[idx]['utterance'], self.templates[idx]['system_act']
 
     def __str__(self):

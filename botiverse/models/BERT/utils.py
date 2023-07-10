@@ -39,7 +39,7 @@ def LoadPretrainedWeights(model):
     new_state_dict = OrderedDict()
     for i in range(len(new_keys)):
         new_state_dict[new_keys[i]] = weights[i]
-        print(old_keys[i], '->', new_keys[i])
+        # print(old_keys[i], '->', new_keys[i])
 
     model.load_state_dict(new_state_dict)
 

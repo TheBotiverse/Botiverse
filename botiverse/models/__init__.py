@@ -8,4 +8,6 @@ from botiverse.models.BERT.config import BERTConfig
 from botiverse.models.BERT.utils import LoadPretrainedWeights
 
 from botiverse.models.TRIPPY import TRIPPY
+from botiverse.models.TRIPPY import TRIPPY_DST
+
 from botiverse.models.LSTM.LSTM import LSTMClassifier

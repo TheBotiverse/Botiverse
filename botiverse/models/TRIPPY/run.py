@@ -123,6 +123,6 @@ def run(model, domains, slot_list, label_maps, train_json, dev_json, test_json, 
     
     
 
-from botiverse.bots import Theorizer
-from botiverse.models import NeuralNet
-from botiverse.preprocessors import BertEmbedder
+# from botiverse.bots import Theorizer
+# from botiverse.models import NeuralNet
+# from botiverse.preprocessors import BertEmbedder
