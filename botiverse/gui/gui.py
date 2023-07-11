@@ -15,7 +15,7 @@ class chat_gui:
         self.root.resizable(True, False)
         
         # Create the chat display area
-        self.chat_display = scrolledtext.ScrolledText(self.root, width=40, height=20, state='disabled', bg='#1d1d1d', fg='#1d1d1d')
+        self.chat_display = scrolledtext.ScrolledText(self.root, width=40, height=25, state='disabled', bg='#1d1d1d', fg='#1d1d1d')
         self.chat_display.configure(state='disabled', borderwidth=0)
         self.chat_display.configure(highlightthickness=0, relief='flat')
                 
