@@ -59,8 +59,11 @@ class ConverseBot:
                 # prepare the training batches
                 batch_text_input_ids = torch.concat(self.train_data['text_input_ids'][i:i+batch_size].tolist()).to(self.device)
                 batch_text_attention_mask = torch.concat(self.train_data['text_attention_mask'][i:i+batch_size].tolist()).to(self.device)
-                batch_labels = torch.concat(self.train_data['target'][i:i+batch_size].tolist()).to(self.device)
-                loss = self.model(input_ids=batch_text_input_ids, attention_mask=batch_text_attention_mask, labels=batch_labels).loss
+                batch_labels = torch.concat(self.train_data['target'][i:i+batch_size].tolist()).to(self.device).to(self.device)
+                if self.from_scratch:
+                    loss = self.model(input_ids=batch_text_input_ids, attention_mask=batch_text_attention_mask, decoder_input_ids=batch_labels)[1]
+                else:
+                    loss = self.model(input_ids=batch_text_input_ids, attention_mask=batch_text_attention_mask, labels=batch_labels).loss
                 loss.backward()
                 self.optimizer.step()
             print("Epoch: " + str(epoch) + " Loss: " + str(loss.item()))

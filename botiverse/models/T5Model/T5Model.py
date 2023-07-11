@@ -681,6 +681,8 @@ class T5Model(nn.Module):
         self.decoder = DecoderModule(self.shared)
         self.lm_head = nn.Linear(d_model, vocab_size, bias=False)
         self.softmax = nn.Softmax(dim=-1)
+        self.loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
+        
     def forward(
         self,
         input_ids=None,
@@ -720,7 +722,8 @@ class T5Model(nn.Module):
         # lm_head
         lm_logits = self.lm_head(decoder_outputs)
         output = self.softmax(lm_logits)
-        return output
+        loss = self.loss_fn(lm_logits.view(-1, lm_logits.size(-1)), decoder_input_ids.view(-1))
+        return output, loss
     
     def generate(
       self,
