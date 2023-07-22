@@ -1,19 +1,27 @@
 import pandas as pd
 from transformers import AutoTokenizer
 import numpy as np
+import json
 
 class ConverseBot_Preprocessor:
     ''''An interface that provides the required preprocessing for the ConverseBot bot'''
-    def __init__(self, dataset=None):
+    def __init__(self, file_path=None, dataset=None):
         """
         Initializes a ConverseBot_Preprocessor instance with an optional training dataset, note that the dataset structure is an array of multiturn conversations and each multiturn conversation is an array of strings, e.g., [["hi","hello","how are you?"], ["good","how about you?","i am fine"]]
 
-        :param dataset: Dataset to be processed.
+        :param dataset: Dataset to be processed (use it or file_path).
         :type dataset: list of list of str, optional
+
+        :param file_path: Path to the .json file that contains the conversation array (use it or dataset).
+        :type file_path: str, optional
 
         :returns: None
         """
-        self.data = dataset
+        if file_path:
+            with open(file_path, 'r') as f:
+                self.data = json.load(f)
+        else:
+            self.data = dataset
         # create the t5 tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
 

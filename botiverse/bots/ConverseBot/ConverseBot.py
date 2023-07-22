@@ -7,12 +7,12 @@ from botiverse.models.T5Model.T5Model import T5Model
 
 class ConverseBot:
     '''An interface for the ConverseBot model which is a conversational model based on the Flan-T5 model'''
-    def __init__(self, dataset=None, from_scratch=True):
+    def __init__(self, from_scratch=False):
         """
         Initializes a ConverseBot instance and loads the Backend finetuning parameters, and optionally gets the training dataset if a frontend finetuning is desired.
 
-        :param dataset: Dataset to train on.
-        :type dataset: DataFrame, optional
+        :param from_scratch: Boolean flag to indicate whether to load a model verstion that is made from scratch (recommended to be False)
+        :type from_scratch: Boolean, optional
 
         :returns: None
         """
@@ -28,18 +28,28 @@ class ConverseBot:
         # move the model to the GPU if available
         self.model.to(self.device)
         # load the preprocessor
-        self.preprocessor = ConverseBot_Preprocessor(dataset)
-        # process the dataset if it exists
-        if dataset is not None:
-          # preprocess the dataset
-          self.data = self.preprocessor.process()
-          # train validation split
-          self.train_data = self.data.sample(frac=0.99, random_state=0)
-          self.validation_data = self.data.drop(self.train_data.index)
-          self.train_data = self.train_data.reset_index(drop=True)
-          self.validation_data = self.validation_data.reset_index(drop=True)
+        self.preprocessor = ConverseBot_Preprocessor()
 
-    def train(self, epochs=1, batch_size=32):
+    def read_data(self, file_path):
+        """
+        Reads and pre-processes the data, sets up the model based on the data and prepares the train-validation split.
+
+        :param file_path: The path to the file that contains the dataset.
+        :type file_path: str
+
+        :returns: None
+        """
+        # read data
+        self.preprocessor = ConverseBot_Preprocessor(file_path=file_path)
+        # process data
+        self.data = self.preprocessor.process()
+        # train validation split
+        self.train_data = self.data.sample(frac=0.99, random_state=0)
+        self.validation_data = self.data.drop(self.train_data.index)
+        self.train_data = self.train_data.reset_index(drop=True)
+        self.validation_data = self.validation_data.reset_index(drop=True)
+
+    def train(self, epochs=1, batch_size=1):
         """
         Trains the model on the input dataset.
 
@@ -68,7 +78,7 @@ class ConverseBot:
                 self.optimizer.step()
             print("Epoch: " + str(epoch) + " Loss: " + str(loss.item()))
 
-    def validation(self, batch_size=32):
+    def validation(self, batch_size=1):
         """
         Validates the model on the validation dataset.
 
@@ -91,7 +101,7 @@ class ConverseBot:
                 total += batch_labels.size(0)
         print('Validation Loss: ', loss/total)
 
-    def infer(self, string, temperature=0.9):
+    def infer(self, string, temperature=1):
         """
         Inference on the model using the input string.
 
@@ -112,7 +122,7 @@ class ConverseBot:
             output_tokens = self.model.generate(input_ids=input_ids, attention_mask=attention_mask, max_length=250, temperature=temperature)
             return self.preprocessor.decode_tokens(output_tokens)
         else:
-            output_tokens = self.model.generate(input_ids=input_ids, attention_mask=attention_mask, max_length=250, num_beams=5, early_stopping=True, temperature=temperature)
+            output_tokens = self.model.generate(input_ids=input_ids, attention_mask=attention_mask, max_length=250, num_beams=5, early_stopping=True, temperature=temperature, repetition_penalty=1.5)
             return self.preprocessor.decode_tokens(output_tokens[0])
 
     # save a model locally
