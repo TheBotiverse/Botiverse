@@ -44,18 +44,18 @@ class BasicTODS:
         self.nlg = TemplateBasedNLG(templates)
         self.current_domain = None
 
-    # def train(self, data):
-    #     """
-    #     Train the chatbot model with the given JSON data.
+    def train(self, data):
+        """
+        Train the chatbot model with the given JSON data.
 
-    #     :param data: A stringfied JSON object containing the training data
-    #     :type number: string
+        :param data: A stringfied JSON object containing the training data
+        :type number: string
 
-    #     :return: None
-    #     :rtype: NoneType
-    #     """
-    #     rubbish = data
-
+        :return: None
+        :rtype: NoneType
+        """
+        pass
+    
     def infer(self, prompt):
         """
         Infer a suitable response to the given prompt.

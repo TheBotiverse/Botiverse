@@ -10,26 +10,19 @@ from tqdm import tqdm
 
 from botiverse.models.TRIPPY.utils import RawDataInstance, DataInstance, normalize, is_included, included_with_label_maps, match_with_label_maps, mask_utterance
 
-def get_ontology_label_maps(ontology_path, label_maps_path, domains):
+def fix_slot_list(slot_list, domains):
   """
-  Read ontology and label maps, and filter slots based on domains.
+  Fix slot list by filtering slots based on domains.
 
-  :param ontology_path: The path to the ontology file.
-  :type ontology_path: str
-
-  :param label_maps_path: The path to the label maps file.
-  :type label_maps_path: str
+  :param slot_list: List of slot names.
+  :type slot_list: list[str]
 
   :param domains: The list of domains to filter the slots.
   :type domains: list[str]
 
-  :return: The sorted slot list and label maps.
-  :rtype: tuple[list[str], dict]
+  :return: The new fixed and sorted slot list.
+  :rtype: list[str]
   """
-
-  # read ontology
-  file = open(ontology_path)
-  slot_list = json.load(file)
 
   # delete slots not in the domains
   del_slot = []
@@ -43,11 +36,7 @@ def get_ontology_label_maps(ontology_path, label_maps_path, domains):
   for slot in del_slot:
     del slot_list[slot_list.index(slot)]
 
-  # read label_maps
-  file = open(label_maps_path)
-  label_maps = json.load(file)
-
-  return sorted(slot_list), label_maps
+  return sorted(slot_list)
 
 
 def read_raw_data(data_path, slot_list, max_len, domains, multiwoz):

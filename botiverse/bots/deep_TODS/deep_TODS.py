@@ -21,11 +21,11 @@ class DeepTODS:
   :param domains: List of domain names.
   :type domains: list[str]
 
-  :param ontology_path: Path to the ontology file.
-  :type ontology_path: str
+  :param slot_list: List of slot names.
+  :type slot_list: list[str]
 
-  :param label_maps_path: Path to the label maps file.
-  :type label_maps_path: str
+  :param label_maps: Dictionary of the variants of the slot-values that are mapped to the canonical slot-values.
+  :type label_maps: dict[str, list]
 
   :param policy: The dialogue policy to be used ('Random' or 'Priority').
   :type policy: str
@@ -45,13 +45,13 @@ class DeepTODS:
   :param from_scratch: Indicates whether to use BERT model implemented from scratch in the library, defaults to False.
   :type from_scratch: bool
   """
-  def __init__(self, name, domains, ontology_path, label_maps_path, policy, start, templates, non_referable_slots=[], non_referable_pairs=[], from_scratch=False, BERT_config=BERTConfig(), TRIPPY_config=TRIPPYConfig()):
+  def __init__(self, name, domains, slot_list, label_maps, policy, start, templates, non_referable_slots=[], non_referable_pairs=[], from_scratch=False, BERT_config=BERTConfig(), TRIPPY_config=TRIPPYConfig()):
     self.name = name
     self.domains = domains
     self.policy = policy
     self.start = start
     self.is_start = True
-    self.dst = TRIPPYDST(domains, ontology_path, label_maps_path, non_referable_slots, non_referable_pairs, from_scratch, BERT_config, TRIPPY_config)
+    self.dst = TRIPPYDST(domains, slot_list, label_maps, non_referable_slots, non_referable_pairs, from_scratch, BERT_config, TRIPPY_config)
     self.dpo = RandomDP() if policy == 'Random' else PriorityDP() if policy == 'Priority' else None
     self.nlg = TemplateBasedNLG(templates)
     self.sys_utter = ''

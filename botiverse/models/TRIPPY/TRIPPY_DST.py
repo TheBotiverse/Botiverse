@@ -6,7 +6,7 @@ import torch
 from collections import OrderedDict
 
 from botiverse.models.TRIPPY.utils import normalize, mask_utterance
-from botiverse.models.TRIPPY.data import get_ontology_label_maps, prepare_data, Dataset
+from botiverse.models.TRIPPY.data import fix_slot_list, prepare_data, Dataset
 from botiverse.models.TRIPPY.run import run
 from botiverse.models.TRIPPY.infer import infer
 from botiverse.models.TRIPPY.config import TRIPPYConfig
@@ -22,10 +22,10 @@ class TRIPPYDST:
     
     :param domains: The list of domains to consider.
     :type domains: list[str]
-    :param ontology_path: The path to the ontology file.
-    :type ontology_path: str
-    :param label_maps_path: The path to the label maps file.
-    :type label_maps_path: str
+    :param slot_list: List of slot names.
+    :type slot_list: list[str]
+    :param label_maps: Dictionary of the variants of the slot-values that are mapped to the canonical slot-values.
+    :type label_maps: dict[str, list]
     :param non_referable_slots: The list of non-referable slots.
     :type non_referable_slots: list[str]
     :param non_referable_pairs: The list of non-referable slot pairs.
@@ -36,20 +36,19 @@ class TRIPPYDST:
     :type TRIPPY_config: TRIPPYConfig, optional
     """
 
-    def __init__(self, domains, ontology_path, label_maps_path, non_referable_slots, non_referable_pairs, from_scratch, BERT_config, TRIPPY_config=TRIPPYConfig()):
+    def __init__(self, domains, slot_list, label_maps, non_referable_slots, non_referable_pairs, from_scratch, BERT_config, TRIPPY_config=TRIPPYConfig()):
         self.domains = domains
-        self.ontology_path = ontology_path
-        self.label_maps_path = label_maps_path
         self.non_referable_slots = non_referable_slots
         self.non_referable_pairs = non_referable_pairs
         self.from_scratch = from_scratch
         self.BERT_config = BERT_config
         self.TRIPPY_config = TRIPPY_config
 
-        slot_list, label_maps = get_ontology_label_maps(ontology_path, label_maps_path, domains)
+        slot_list = fix_slot_list(slot_list, domains)
         self.slot_list = slot_list
         self.n_slots = len(slot_list)
         self.label_maps = label_maps
+
         self.state = {}
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = TRIPPY(len(slot_list), TRIPPY_config.hid_dim, TRIPPY_config.n_oper, TRIPPY_config.dropout, from_scratch, BERT_config, TRIPPY_config).to(self.device)
@@ -209,8 +208,8 @@ class TRIPPYDST:
       """
       string = ''
       string = string + '\ndomains: ' + str(self.domains)
-      string = string + '\nontology_path: ' + str(self.ontology_path)
-      string = string + '\nlabel_maps_path: ' + str(self.label_maps_path)
+      string = string + '\nslot_list: ' + str(self.slot_list)
+      string = string + '\nlabel_maps: ' + str(self.label_maps)
       string = string + '\nnon_referable_slots: ' + str(self.non_referable_slots)
       string = string + '\nnon_referable_pairs: ' + str(self.non_referable_pairs)
       string = string + '\nfrom_scratch: ' + str(self.from_scratch)
