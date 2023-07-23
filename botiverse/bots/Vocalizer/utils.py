@@ -1,4 +1,4 @@
-import pyaudio
+# import pyaudio
 import wave
 from array import array
 from tqdm import tqdm
@@ -11,6 +11,8 @@ def voice_input(record_time=3, voice_threshold=900, save_path='sample.wav'):
     :param save_path: The path to save the audio file to.
     :return: The path to the audio file.
     '''
+    
+    """
     #instantiate the pyaudio
     audio = pyaudio.PyAudio()
 
@@ -44,3 +46,5 @@ def voice_input(record_time=3, voice_threshold=900, save_path='sample.wav'):
     wavfile.close()
 
     return save_path
+    """
+    pass

@@ -12,7 +12,7 @@ nltk
 numpy
 pandas
 playsound
-pyaudio
+# pyaudio
 pydub
 scikit_learn
 scipy
