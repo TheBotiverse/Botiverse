@@ -8,7 +8,7 @@ from nltk.stem.porter import PorterStemmer
 stemmer = PorterStemmer()
 
 
-class basic_chatbot:
+class BasicBot:
     '''
     An interface for a basic chatbot model suitable for small datasets such as FAQs. Note that the
     underlying model is not sequential (either an NN or an SVM).
@@ -42,7 +42,6 @@ class basic_chatbot:
             self.transformer = repr
         else:
             raise Exception('Representation must either be one of those the basic chatbot support or a custom one that implement the transform API. Found was ' + repr)
-        
             
         self.tf = None
         self.idf = None
@@ -84,13 +83,22 @@ class basic_chatbot:
             y[i] = classes.index(tag)
         y = np.array(y)
         return X, y
+    
+    def read_data(self, path):
+        """
+        Read the data from a JSON file for the chatbot to train on later.
+        :param data: A stringfied JSON object containing the training data 
+        :type number: string
+        """
+        with open(path, 'r') as f:
+            self.raw_data = json.load(f) 
 
-    def train(self, path, max_epochs=None, early_stop=False, **kwargs):
+        self.X, self.y = self.setup_data()
+        
+    def train(self, max_epochs=None, early_stop=False, **kwargs):
         """
         Train the chatbot model with the given JSON data.
         
-        :param data: A stringfied JSON object containing the training data 
-        :type number: string
         :param early_stop: Whether to use early stopping or not
         :type early_stop: bool
         :param provided_model: A model to use instead of the default one
@@ -101,11 +109,7 @@ class basic_chatbot:
         :return: None
         :rtype: NoneType
         """
-        with open(path, 'r') as f:
-            self.raw_data = json.load(f) 
-
-        X, y = self.setup_data()
-            
+        X, y = self.X, self.y
         if self.machine == 'nn':
             self.model = NeuralNet(structure=[X.shape[1], 12, len(self.classes)], activation='sigmoid')
             max_epochs = max_epochs if max_epochs is not None else 30 * len(self.classes)
@@ -119,7 +123,7 @@ class basic_chatbot:
             self.model = SVM(kernel='linear', C=700)
             self.model.fit(X, y, eval_train=True)
         elif type(self.machine) != str:
-                self.model.fit(X, y, **kwargs)
+                self.machine.fit(X, y, **kwargs)
         else:
             raise Exception('Machine must either be one of those the basic chatbot support or a custom one that implement the fit API. Found was ' + self.machine)
 

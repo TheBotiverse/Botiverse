@@ -1,16 +1,16 @@
+import pandas as pd
 import torch
-import torch.nn as nn
-import torch.optim as optim
 from tqdm.auto import tqdm
-from botiverse.models.GRUClassifier.GRUClassifier import GRUTextClassifier
-from botiverse.preprocessors.WhizBot_GRU_Preprocessor.WhizBot_GRU_Preprocessor import WhizBot_GRU_Preprocessor
+from torch import nn,optim
+from botiverse.models.LinearClassifier.LinearClassifier import LinearClassifier
+from botiverse.preprocessors.Special.WhizBot_BERT_Preprocessor.WhizBot_BERT_Preprocessor import WhizBot_BERT_Preprocessor
 import random
 
-class WhizBot_GRU:
-    '''An interface for the WhizBot_GRU model which is based on simple GRU model'''
+class WhizBot_BERT:
+    '''An interface for the WhizBot_BERT model which is a BERT model with a Feed Forward layes at the end.'''
     def __init__(self):
         """
-        Initializes WhizBot_GRU, and will prepare the GPU device based on CUDA availability.
+        Initializes WhizBot_BERT, and will prepare the GPU device based on CUDA availability.
         """
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -24,22 +24,21 @@ class WhizBot_GRU:
         :returns: None
         """
         # read data
-        self.preprocessor = WhizBot_GRU_Preprocessor(file_path)
+        self.preprocessor = WhizBot_BERT_Preprocessor(file_path)
         # process data
         self.data = self.preprocessor.process()
-        # prepare model
-        vocab_size = len(self.preprocessor.tokenizer.get_vocab())
         num_labels = len(self.preprocessor.label_dict)
-        self.model = GRUTextClassifier(vocab_size, 300, num_labels).to(self.device)
+        # prepare model
+        self.model = LinearClassifier(768, num_labels).to(self.device)
         self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = optim.SGD(self.model.parameters(), lr=0.05)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.01)
         # train validation split
-        self.train_data = self.data.sample(frac=0.8, random_state=0)
+        self.train_data = self.data.sample(frac=0.8, random_state=42)
         self.validation_data = self.data.drop(self.train_data.index)
         self.train_data = self.train_data.reset_index(drop=True)
         self.validation_data = self.validation_data.reset_index(drop=True)
 
-    def train(self, epochs=50, batch_size=32):
+    def train(self, epochs=10, batch_size=32):
         """
         Trains the model using the training dataset.
 
@@ -52,18 +51,18 @@ class WhizBot_GRU:
         :returns: None
         """
         self.model.train()
-        for epoch in range(epochs):
-            for i in tqdm(range(0, len(self.train_data), batch_size)):
+        pbar = tqdm(range(epochs), leave=True)
+        for epoch in pbar:
+            for i in range(0, len(self.train_data), batch_size):
                 self.model.zero_grad()
-                # get the batches
-                batch_texts = torch.stack(self.train_data['text'][i:i+batch_size].tolist()).to(self.device)
+                batch_texts = torch.cat(self.train_data['text'][i:i+batch_size].tolist()).to(self.device)
                 batch_labels = torch.cat(self.train_data['label'][i:i+batch_size].tolist()).to(self.device)
                 output = self.model(batch_texts)
                 loss = self.criterion(output, batch_labels)
-                # backpropagate
                 loss.backward()
                 self.optimizer.step()
-            print("Epoch: " + str(epoch) + " Loss: " + str(loss.item()))
+            pbar.set_description("Epoch: " + str(epoch) + " Loss: " + str(loss.item()))
+                
 
     def validation(self, batch_size=32):
         """
@@ -78,13 +77,11 @@ class WhizBot_GRU:
         total = 0
         self.model.eval()
         with torch.no_grad():
-            for i in tqdm(range(0, len(self.validation_data), batch_size)):
-                # get the batches
-                batch_texts = torch.stack(self.validation_data['text'][i:i+batch_size].tolist()).to(self.device)
+            for i in tqdm(range(0, len(self.validation_data), batch_size), leave=True):
+                batch_texts = torch.cat(self.validation_data['text'][i:i+batch_size].tolist()).to(self.device)
                 batch_labels = torch.cat(self.validation_data['label'][i:i+batch_size].tolist()).to(self.device)
                 outputs = self.model(batch_texts)
                 _, predicted = torch.max(outputs.data, 1)
-                # calculate accuracy
                 total += batch_labels.size(0)
                 correct += (predicted == batch_labels).sum().item()
         print('Accuracy: %d %%' % (100 * correct / total))
@@ -100,16 +97,13 @@ class WhizBot_GRU:
         """
         self.model.eval()
         with torch.no_grad():
-            string = self.preprocessor.process_string(string)
-            string = string.unsqueeze(0).to(self.device)
+            string = self.preprocessor.process_string(string).to(self.device)
             output = self.model(string)
             _, predicted = torch.max(output.data, 1)
-            # get the label
             for key, value in self.preprocessor.label_dict.items():
                 if value == predicted.item():
                     label = key
                     break
-        # return a random responce of the label
         return random.choice(self.preprocessor.responces[label])
 
     def save(self, path):

@@ -1,0 +1,135 @@
+
+
+{
+    "A":{
+        "Bot": "Thanks for calling Botiverse Airlines. Would you like us to proceed in English or Spanish?",
+        "max_duration": "3",
+        "Options": [
+            {
+                "Intent": "English",
+                "Speak": "Okay. We will continue in English",
+                "Next": "B"
+            },
+            {
+                "Intent": "Spanish",
+                "Speak": "Sorry. But I do not speak spanish yet.",
+                "Next": "A"
+            }
+        ]
+    },
+
+    "B": {
+        "Bot": "Are you calling regarding an issue with your flight?",
+        "max_duration": "3",
+        "Options" : [
+            {
+                "Intent": "yes",
+                "Speak": "Okay. We will try our best to get the issue resolved.",
+                "Next": "C"
+            },
+            {
+                "Intent": "no",
+                "Speak": "Okay. Please call us back if you have any issues.",
+                "Next": "Z"
+            }
+
+        ]
+    },
+
+    "C": {
+        "Bot": "Briefly, what type of issue you are facing with your flight?",
+        "max_duration": "5",
+        "Options": [
+            { 
+                "Intent": "flight delay",
+                "Speak": "We are sorry for the flight delay and will forward you to an agent to help with this issue.",
+                "Next": "Y"
+            },
+            {
+                "Intent": "missing luggage",
+                "Speak": "We are sorry for the missing luggage and will forward you to an agent to help with this issue.",
+                "Next": "Y"
+            },
+            {
+                "Intent": "ticket problem",
+                "Speak": "We are sorry for the ticket problem eand will forward you to an agent to help with this issue.",
+                "Next": "Y"
+            },
+            {
+                "Intent": "food problem",
+                "Speak": "We are sorry for the food problem and will forward you to an agent to help with this issue",
+                "Next": "Y"
+            },
+            {
+                "Intent": "bad attitude from staff",
+                "Speak": "We are sorry for the bad attitude from staff and will forward you to an agent to help with this issue",
+                "Next": "Y"
+            },
+            {
+                "Intent": "discomfort in flight",
+                "Speak": "We are sorry for the discomfort in flight and will forward you to an agent to help with this issue",
+                "Next": "Y"
+            }
+        ]
+
+    },
+
+    "Y": {
+        "Bot": "Would you like to rate your experience with the agent",
+        "max_duration": "3",
+        "Options": [
+            {
+                "Intent": "yes",
+                "Speak": "Alright.",
+                "Next": "YY"
+            },
+            {
+                "Intent": "no",
+                "Speak": "Okay.!",
+                "Next": "Z"
+            }
+        ]
+    },
+
+    "YY": {
+        "Bot": "Please call out a number between one and five to rate your experience with the agent.",
+        "max_duration": "3",
+        "Options": [
+            {
+                "Intent": "one",
+                "Speak": "Your rated the agent one out of five. and it has been recorded",
+                "Next": "Z"
+            },
+            {
+                "Intent": "two",
+                "Speak": "Your rated the agent two out of five. and it has been recorded",
+                "Next": "Z"
+            },
+            {
+                "Intent": "three",
+                "Speak": "Your rated the agent three out of five. and it has been recorded",
+                "Next": "Z"
+            },
+            {
+                "Intent": "four",
+                "Speak": "Your rated the agent four out of five. and it has been recorded",
+                "Next": "Z"
+            },
+            {
+                "Intent": "five",
+                "Speak": "Your rated the agent five out of five. and it has been recorded",
+                "Next": "Z"
+            }
+            
+        ]
+
+    },
+
+    "Z": {
+        "max_duration": "3",
+        "Bot": "Thank you for calling Botiverse Airlines. Have a nice day!"
+    }
+
+    }
+
+

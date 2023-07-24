@@ -1,4 +1,6 @@
-from botiverse.bots.basic_chatbot.basic_chatbot import basic_chatbot
+from botiverse.bots.BasicBot.BasicBot import BasicBot
+from botiverse.bots.WhizBot.WhizBot import WhizBot
 from botiverse.bots.basic_TODS.basic_TODS import BasicTODS
 from botiverse.bots.deep_TODS.deep_TODS import DeepTODS
-from botiverse.bots.Vocalizer.Vocalizer import SpeechClassifier, Vocalizer
+from botiverse.bots.VoiceBot.SpeechClassifier import SpeechClassifier
+from botiverse.bots.VoiceBot.VoiceBot import VoiceBot
