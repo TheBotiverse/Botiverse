@@ -1,15 +1,15 @@
 """
-This module contains the base code and interface of deep TODS .
+This module contains the base code and interface of deep Taskbot .
 """
 
-from botiverse.bots.deep_TODS.utils import RandomDP, PriorityDP, TemplateBasedNLG
+from botiverse.bots.TaskBot.utils import RandomDP, PriorityDP, TemplateBasedNLG
 from botiverse.models.TRIPPY.config import TRIPPYConfig
 from botiverse.models.TRIPPY.TRIPPY_DST import TRIPPYDST
 from botiverse.models.BERT.config import BERTConfig
 
 import random
 
-class DeepTODS:
+class TaskBot:
   """
   Instantiate a Deep Task Oriented Dialogue System chat bot.
   It aims to assist the user in completing certain tasks in specific domains.

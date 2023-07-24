@@ -1,10 +1,10 @@
 """
-This module contains the base code and interface of basic TODS.
+This module contains the base code and interface of basic Taskbot.
 """
-from botiverse.bots.basic_TODS.utils import RuleBasedNLU, MostRecentDST, RandomDP, TemplateBasedNLG
+from botiverse.bots.TaskBot.utils import RuleBasedNLU, MostRecentDST, RandomDP, TemplateBasedNLG
 
 
-class BasicTODS:
+class BasicTaskBot:
     """
     Instantiate a Task Oriented Dialogue System chat bot.
     It aims to assist the user in completing certain tasks in specific domains.

@@ -1,5 +1,5 @@
 import unittest
-from botiverse.bots.deep_TODS.utils import PriorityDP
+from botiverse.bots.TaskBot.utils import PriorityDP
 
 class PriorityDPTests(unittest.TestCase):
 

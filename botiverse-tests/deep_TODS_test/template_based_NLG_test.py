@@ -1,5 +1,5 @@
 import unittest
-from botiverse.bots.deep_TODS.utils import TemplateBasedNLG
+from botiverse.bots.TaskBot.utils import TemplateBasedNLG
 
 class TemplateBasedNLGTests(unittest.TestCase):
 

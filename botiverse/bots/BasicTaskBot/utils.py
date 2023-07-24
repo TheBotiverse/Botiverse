@@ -1,5 +1,5 @@
 """
-This module ontains utility code used by the basic TODS module
+This module ontains utility code used by the basic Taskbot module
 such as Natural Language Understanding (NLU), Dialogue State Tracker (DST) ... etc.
 """
 import re

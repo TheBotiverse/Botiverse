@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 from random import Random
-from botiverse.bots.deep_TODS.utils import RandomDP
+from botiverse.bots.TaskBot.utils import RandomDP
 
 class RandomDPTests(unittest.TestCase):
 
