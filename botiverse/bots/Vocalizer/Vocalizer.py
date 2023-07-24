@@ -7,14 +7,14 @@ from botiverse.models import TTS
 from playsound import playsound
 
 from botiverse.models import LSTMClassifier
-from botiverse.preprocessors import Vocalize, Wav2Vec, Wav2Text, BertEmbedder, Frequency
+from botiverse.preprocessors import Vocalize, Wav2Vec, Wav2Text, BertEmbedder, Frequency, BertSentenceEmbedder
 from botiverse.bots.Vocalizer.utils import voice_input
 
 
 
 class Vocalizer():
     '''An interface for the vocalizer chatbot which simulates a call with a customer service bot.'''
-    def __init__(self, call_json_path):
+    def __init__(self,  call_json_path, repr='BERT-Sentence'):
         ''' 
         Load the call data from a json file.
         :param call_json_path: The path to the json file containing the call state machine.
@@ -24,8 +24,13 @@ class Vocalizer():
         self.call_data = json.loads(call_json)
         self.current_node = 'A'
         self.wav2text = Wav2Text()
-        self.bert_embeddings = BertEmbedder()
-
+        if repr == 'BERT':
+            self.bert_embeddings = BertEmbedder()
+        elif repr == 'BERT-Sentence':
+            self.bert_sentence_embeddings = BertSentenceEmbedder()
+        else:
+            raise Exception(f"Invalid representation {repr}. Expected BERT or BERT-Sentence.")        
+    
     def generate_speech(self, text, offline=False):
         '''Use Google's TTS or offline FastSpeech 1.0 to play speech from the given text.
         :param text: The text to be converted into speech.
@@ -63,7 +68,7 @@ class Vocalizer():
             max_dur = node_data['max_duration']
             human_resp = voice_input(record_time=int(max_dur))
             human_resp = self.wav2text.transcribe(human_resp)
-            selected_ind, score = self.bert_embeddings.closest_sentence(human_resp, intents, retun_ind=True)
+            selected_ind, score = self.bert_sentence_embeddings.closest_sentence(human_resp, intents, retun_ind=True)
             print(f"you said: {human_resp} and the bot decided that you meant {intents[selected_ind]} with a score of {score}")
             
             # 3 - speak according to the chosen option
@@ -122,7 +127,6 @@ class SpeechClassifier():
         :param patience: The number of bad epochs to wait before early stopping.
         :param max_epochs: The maximum number of epochs to train for.
         '''
-        print(X.shape)
         if self.machine == 'lstm':
             self.model = LSTMClassifier(X.shape[2], hidden, len(self.words))
             self.model.fit(X, y,  λ, α, max_epochs, patience, **kwargs)
