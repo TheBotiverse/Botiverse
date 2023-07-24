@@ -51,8 +51,9 @@ class WhizBot_BERT:
         :returns: None
         """
         self.model.train()
-        for epoch in range(epochs):
-            for i in tqdm(range(0, len(self.train_data), batch_size)):
+        pbar = tqdm(range(epochs), leave=True)
+        for epoch in pbar:
+            for i in range(0, len(self.train_data), batch_size):
                 self.model.zero_grad()
                 batch_texts = torch.cat(self.train_data['text'][i:i+batch_size].tolist()).to(self.device)
                 batch_labels = torch.cat(self.train_data['label'][i:i+batch_size].tolist()).to(self.device)
@@ -60,7 +61,8 @@ class WhizBot_BERT:
                 loss = self.criterion(output, batch_labels)
                 loss.backward()
                 self.optimizer.step()
-            print("Epoch: " + str(epoch) + " Loss: " + str(loss.item()))
+            pbar.set_description("Epoch: " + str(epoch) + " Loss: " + str(loss.item()))
+                
 
     def validation(self, batch_size=32):
         """
@@ -75,7 +77,7 @@ class WhizBot_BERT:
         total = 0
         self.model.eval()
         with torch.no_grad():
-            for i in tqdm(range(0, len(self.validation_data), batch_size)):
+            for i in tqdm(range(0, len(self.validation_data), batch_size), leave=True):
                 batch_texts = torch.cat(self.validation_data['text'][i:i+batch_size].tolist()).to(self.device)
                 batch_labels = torch.cat(self.validation_data['label'][i:i+batch_size].tolist()).to(self.device)
                 outputs = self.model(batch_texts)

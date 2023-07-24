@@ -6,11 +6,6 @@ def illustrate_features_2D(X, y, clf):
     '''
     Show 2D plot with decision regions
     '''
-    # Fit the mode
-    #X = X[:, :2]
-    #clf = copy.copy(clf)
-    #clf.fit(X, y)
-    # Prepare the x,y grid so it spans all points
     x1_min, x1_max = X[:, 0].min() - 1, X[:, 0].max() + 1
     x2_min, x2_max = X[:, 1].min() - 1, X[:, 1].max() + 1
     x1x1, x2x2 = np.meshgrid(np.arange(x1_min, x1_max, 0.01), np.arange(x2_min, x2_max, 0.01))
