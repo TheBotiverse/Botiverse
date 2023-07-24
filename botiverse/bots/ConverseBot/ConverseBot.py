@@ -2,7 +2,7 @@ import torch
 from transformers import AutoModelForSeq2SeqLM
 from tqdm.auto import tqdm
 import torch.optim as optim
-from botiverse.preprocessors.ConverseBot_Preprocessor.ConverseBot_Preprocessor import ConverseBot_Preprocessor
+from botiverse.preprocessors.Special.ConverseBot_Preprocessor.ConverseBot_Preprocessor import ConverseBot_Preprocessor
 from botiverse.models.T5Model.T5Model import T5Model
 
 class ConverseBot:

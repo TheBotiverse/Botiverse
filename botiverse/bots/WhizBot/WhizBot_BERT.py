@@ -3,7 +3,7 @@ import torch
 from tqdm.auto import tqdm
 from torch import nn,optim
 from botiverse.models.LinearClassifier.LinearClassifier import LinearClassifier
-from botiverse.preprocessors.WhizBot_BERT_Preprocessor.WhizBot_BERT_Preprocessor import WhizBot_BERT_Preprocessor
+from botiverse.preprocessors.Special.WhizBot_BERT_Preprocessor.WhizBot_BERT_Preprocessor import WhizBot_BERT_Preprocessor
 import random
 
 class WhizBot_BERT:

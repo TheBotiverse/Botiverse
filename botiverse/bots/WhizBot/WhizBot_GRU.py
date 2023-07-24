@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm.auto import tqdm
 from botiverse.models.GRUClassifier.GRUClassifier import GRUTextClassifier
-from botiverse.preprocessors.WhizBot_GRU_Preprocessor.WhizBot_GRU_Preprocessor import WhizBot_GRU_Preprocessor
+from botiverse.preprocessors.Special.WhizBot_GRU_Preprocessor.WhizBot_GRU_Preprocessor import WhizBot_GRU_Preprocessor
 import random
 
 class WhizBot_GRU:
