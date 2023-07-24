@@ -12,9 +12,6 @@ class BasicTODS:
     training and can also include Deep learning and data can be then used to train
     the chatbot model.
 
-    :param name: The chatbot's name.
-    :type name: str
-
     :param domains_slots: The slots of each domain in the system.
     :type domains_slots: dict[str, list[str]]
 
@@ -31,25 +28,34 @@ class BasicTODS:
         inside the domain and the value is a Regex that is used to capture that slot.
     :type slots_pattern: dict[str, dict[str, str]]
 
-    :param is_classical: Indicates whether to use a fully classical approach, defaults to False
-    :type is_classial: bool
     """
 
-    def __init__(self, name, domains_slots, templates,
-    domains_pattern, slots_pattern, is_classical=False):
-        self.name = name
-        self.nlu = RuleBasedNLU(domains_pattern, slots_pattern) if is_classical is False else None
+    def __init__(self, domains_slots, templates, domains_pattern, slots_pattern, verbose=False):
+        self.nlu = RuleBasedNLU(domains_pattern, slots_pattern)
         self.dst = MostRecentDST(domains_slots)
         self.dpo = RandomDP()
         self.nlg = TemplateBasedNLG(templates)
+        self.verbose = verbose
         self.current_domain = None
 
-    def train(self, data):
+    def read_data(self, data):
         """
-        Train the chatbot model with the given JSON data.
+        Read the chatbot training data, redundant here as we are using a fully classical approach.
 
-        :param data: A stringfied JSON object containing the training data
-        :type number: string
+        :param data: any
+        :type number: any
+
+        :return: None
+        :rtype: NoneType
+        """
+        pass
+
+    def train(self):
+        """
+        Train the chatbot model with the given data in read_data, redundant here as we are using a fully classical approach.
+
+        :param data: any
+        :type number: any
 
         :return: None
         :rtype: NoneType
@@ -63,28 +69,36 @@ class BasicTODS:
         :param promp: The user's prompt
         :type number: str
 
-        :return: When all slots in the current domain are filled it returns True, &
-            the domain name, otherwise it returns False, & the chatbot's response.
-        :rtype: tuple[bool, str]
+        :return: When all slots in the current domain are filled it returns empty string, otherwise it returns the response.
+        :rtype: str
         """
 
+        response = ""
         status, self.current_domain = self.nlu.get_domain(self.current_domain, prompt)
+        # if no domain is detected or the domain is not supported return a default response
         if status is False or self.current_domain is None:
-            return False, "Sorry I don't know what domain are you talking about!"
+            response = "Sorry I don't know what domain are you talking about!"
+        else:
+            # get the slots and their values
+            status, slots, values = self.nlu.get_slot_fillers(self.current_domain, prompt)
+            # if no slots are detected or the slots are not supported return a default response
+            if status is False:
+                response = "Sorry I Couldn't catch that can you say it in a different way!"
+            else:
+                # update the dialogue state
+                self.dst.update_state(self.current_domain, slots, values)
+                # get the action to be taken
+                action = self.dpo.get_action(self.current_domain, self.dst.get_dialogue_state())
+                # if no action is detected return empty response
+                if action == "":
+                    response = ""
+                else:
+                    response = self.nlg.generate(self.current_domain, action)
 
-        status, slots, values = self.nlu.get_slot_fillers(self.current_domain, prompt)
-        if status is False:
-            return False, "Sorry I Couldn't catch that can you say it in a different way!"
+        if self.verbose == True:
+            print(f'State: {self.dst.get_dialogue_state()}')
 
-        self.dst.update_state(self.current_domain, slots, values)
-
-        action = self.dpo.get_action(self.current_domain, self.dst.get_dialogue_state())
-        if action == "":
-            return True, self.current_domain
-
-        response = self.nlg.generate(self.current_domain, action)
-
-        return False, response
+        return response
 
     def get_dialogue_state(self):
         """

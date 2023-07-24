@@ -15,26 +15,23 @@ class DeepTODS:
   It aims to assist the user in completing certain tasks in specific domains.
   The chat bot can use a Deep learning approach for training and inference.
 
-  :param name: The chatbot's name.
-  :type name: str
-
   :param domains: List of domain names.
   :type domains: list[str]
 
   :param slot_list: List of slot names.
   :type slot_list: list[str]
 
-  :param label_maps: Dictionary of the variants of the slot-values that are mapped to the canonical slot-values.
-  :type label_maps: dict[str, list]
-
-  :param policy: The dialogue policy to be used ('Random' or 'Priority').
-  :type policy: str
-
   :param start: List of initial system utterances and corresponding system acts.
   :type start: list[dict]
 
   :param templates: The predefined templates for generating responses.
   :type templates: list[dict]
+
+  :param label_maps: Dictionary of the variants of the slot-values that are mapped to the canonical slot-values.
+  :type label_maps: dict[str, list]
+
+  :param policy: The dialogue policy to be used ('Random' or 'Priority').
+  :type policy: str
 
   :param non_referable_slots: List of non-referable slots, defaults to an empty list.
   :type non_referable_slots: list[str]
@@ -44,9 +41,17 @@ class DeepTODS:
 
   :param from_scratch: Indicates whether to use BERT model implemented from scratch in the library, defaults to False.
   :type from_scratch: bool
+
+  :param BERT_config: The configuration of the BERT model, defaults to BERTConfig().
+  :type BERT_config: BERTConfig
+
+  :param TRIPPY_config: The configuration of the TRIPPY model, defaults to TRIPPYConfig().
+  :type TRIPPY_config: TRIPPYConfig
+
+  :param verbose: Indicates whether to print the chatbot's state after each inference, defaults to False.
+  :type verbose: bool
   """
-  def __init__(self, name, domains, slot_list, label_maps, policy, start, templates, non_referable_slots=[], non_referable_pairs=[], from_scratch=False, BERT_config=BERTConfig(), TRIPPY_config=TRIPPYConfig()):
-    self.name = name
+  def __init__(self, domains=[], slot_list=[], start=[], templates=[], label_maps={}, policy='Priority', non_referable_slots=[], non_referable_pairs=[], from_scratch=True, BERT_config=BERTConfig(), TRIPPY_config=TRIPPYConfig(), verbose=False):
     self.domains = domains
     self.policy = policy
     self.start = start
@@ -56,36 +61,57 @@ class DeepTODS:
     self.nlg = TemplateBasedNLG(templates)
     self.sys_utter = ''
     self.inform_mem = {}
+    self.verbose = verbose
 
-  def train(self, train_path, dev_path, test_path, model_path):
+  def save_model(self, model_path):
     """
-    Train the chatbot model with the given training data.
+    Save the trained DST model to the given path.
+
+    :param model_path: Path to save the trained DST model.
+    :type model_path: str
+    """
+    self.dst.save_model(model_path)
+
+
+  def read_data(self, train_path, dev_path=None, test_path=None):
+    """
+    Read the training, development and testing data and store them in the chatbot.
 
     :param train_path: Path to the training data file.
     :type train_path: str
 
-    :param dev_path: Path to the development data file.
+    :param dev_path: Path to the development data file, defaults to None.
     :type dev_path: str
 
-    :param test_path: Path to the testing data file.
+    :param test_path: Path to the testing data file, defaults to None.
     :type test_path: str
-
-    :param model_path: Path to save the trained model.
-    :type model_path: str
     """
-    self.dst.train(train_path, dev_path, test_path, model_path)
 
-  def load_dst_model(self, model_path, test_path=None):
+    self.train_path = train_path
+    self.dev_path = dev_path
+    self.test_path = test_path
+
+  def train(self):
+    """
+    Train the chatbot model with the given training data.
+
+    """
+    self.dst.train(self.train_path, self.dev_path, self.test_path)
+
+  def load_dst_model(self, model_path=None, pretrained='sim-R', test_path=None):
     """
     Load a trained DST model from the given path.
 
     :param model_path: Path to the trained DST model.
     :type model_path: str
 
+    :param pretrained: The pretrained model to be used defaults to 'sim-R'.
+    :type pretrained: str
+
     :param test_path: Path to the testing data file, if applicable, defaults to None.
     :type test_path: str
     """
-    self.dst.load_model(model_path, test_path)
+    self.dst.load_model(model_path, pretrained, test_path)
 
   def infer(self, user_utter):
     """
@@ -97,6 +123,7 @@ class DeepTODS:
     :return: The chatbot's response.
     :rtype: str
     """
+
     response = None
 
     if self.is_start and len(self.start) > 0:
@@ -113,7 +140,29 @@ class DeepTODS:
         self.inform_mem = inform_mem
 
     self.is_start = False
+
+    if self.verbose:
+      print(f'State: {self.get_dialogue_state()}')
+
     return response
+  
+  def infer_with_state(self, user_utter, line_breaker='<br/>'):
+    """
+    Infer a suitable response to the user's utterance and return the dialogue state.
+
+    :param user_utter: The user's input utterance.
+    :type user_utter: str
+
+    :return: The chatbot's response and the dialogue state concatenated into a single string.
+    :rtype: str
+    """
+
+    response = self.infer(user_utter)
+    if response is None:
+      response = ''
+    state = self.get_dialogue_state()
+    return response + line_breaker + str(state)
+
 
   def suggest(self, template):
     """
@@ -169,7 +218,6 @@ class DeepTODS:
     :rtype: str
     """
     string = ''
-    string = string + '\nname: ' + str(self.name)
     string = string + '\ndomains: ' + str(self.domains)
     string = string + '\npolicy: ' + str(self.policy)
     string = string + '\nstart: ' + str(self.start)

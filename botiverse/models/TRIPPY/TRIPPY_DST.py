@@ -4,11 +4,14 @@ This Module has base code and interfaces for TripPy Dialogue State Tracker.
 
 import torch
 from collections import OrderedDict
+import gdown
+import os
 
 from botiverse.models.TRIPPY.utils import normalize, mask_utterance
 from botiverse.models.TRIPPY.data import fix_slot_list, prepare_data, Dataset
 from botiverse.models.TRIPPY.run import run
 from botiverse.models.TRIPPY.infer import infer
+from botiverse.models.TRIPPY.evaluate import eval
 from botiverse.models.TRIPPY.config import TRIPPYConfig
 from botiverse.models.TRIPPY.TRIPPY import TRIPPY
 
@@ -63,15 +66,30 @@ class TRIPPYDST:
         """
         torch.save(self.model.state_dict(), model_path)
 
-    def load_model(self, model_path, test_path):
+    def load_model(self, model_path, pretrained, test_path):
       """
-      Load the trained model.
+      Load the trained model if path is given, else load a pretrained model.
 
       :param model_path: The path to the saved model.
       :type model_path: str
       :param test_path: The path to the test data for evaluation.
       :type test_path: str
       """
+
+      # If model_path is None will the load a pretrained model.
+      if model_path is None and pretrained == 'sim-R':
+        # Download DST weights trained on sim-R
+        curr_dir = os.path.dirname(os.path.abspath(__file__))
+        model_path = os.path.join(curr_dir, 'sim-R.pt')
+        
+        f_id = '1POjBULmqxBrebvINfl989bskAstV3Zld'
+        file_url = f'https://drive.google.com/uc?export=download&confirm=pbef&id={f_id}'
+        if not os.path.exists(model_path):
+            gdown.download(file_url, model_path)
+            print('Model downloaded successfully.')
+        else:
+            print('Model already exists. Skipping download.')
+
       if self.from_scratch == True:
           # Get saved weights
           state_dict = torch.load(model_path, map_location=self.device)
@@ -113,7 +131,7 @@ class TRIPPYDST:
         print(f'All f1 score = {all_f1_score}')
 
 
-    def train(self, train_path, dev_path, test_path, model_path):
+    def train(self, train_path, dev_path=None, test_path=None):
       """
       Train the model.
 
@@ -123,10 +141,15 @@ class TRIPPYDST:
       :type dev_path: str
       :param test_path: The path to the test data for evaluation after training.
       :type test_path: str
-      :param model_path: The path to save the trained model.
-      :type model_path: str
       """
+
+      # Save the temprorary model in the current directory.
+      curr_dir = os.path.dirname(os.path.abspath(__file__))
+      model_path = os.path.join(curr_dir, 'model.pt')
+
+      # Train the model
       run(self.model, self.domains, self.slot_list, self.label_maps, train_path, dev_path, test_path, self.device, self.non_referable_slots, self.non_referable_pairs, model_path, self.TRIPPY_config)
+
 
     def update_state(self, sys_utter, user_utter, inform_mem):
       """
