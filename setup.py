@@ -41,7 +41,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Operating System :: OS Independent"
     ],
-    packages=["botiverse", "botiverse.bots", "botiverse.models", "botiverse.preprocessors"],
+    packages=["botiverse", "botiverse.bots", "botiverse.models", "botiverse.preprocessors","botiverse.Theorizer"],
     include_package_data=True,
     install_requires=["numpy", "torch"]            # just as was in requirements.txt
 )
