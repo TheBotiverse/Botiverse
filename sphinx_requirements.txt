@@ -26,3 +26,4 @@ pydub
 gtts
 librosa
 audiomentations
+sphinx-book-theme
