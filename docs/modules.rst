@@ -4,12 +4,8 @@ Botiverse
 .. toctree::
    :maxdepth: 4
 
-   botiverse
-   botiverse-tests
-   botiverse.Theorizer
+   user_guide
    botiverse.bots
-   botiverse.gui
    botiverse.models
    botiverse.preprocessors
-   main
-   setup
+   botiverse.Theorizer

@@ -97,3 +97,7 @@ html_theme = 'sphinx_book_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+
+# to create the html files locally run the following command in the docs folder
+# .\docs\make.bat html
