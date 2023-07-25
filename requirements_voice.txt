@@ -1,0 +1,10 @@
+waveglowpkg
+sentence-transformers
+PyAudio
+torchaudio
+soundfile
+playsound
+pydub
+gtts
+librosa
+audiomentations
