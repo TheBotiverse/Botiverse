@@ -1,4 +1,12 @@
-
+try:
+    import os
+    from botiverse.models import TTS
+    from playsound import playsound
+    from botiverse.models import LSTMClassifier
+    from botiverse.preprocessors import Vocalize, Wav2Vec,  Frequency
+    from botiverse.bots.VoiceBot.utils import voice_input
+except:
+    pass
 
 class SpeechClassifier():
     '''

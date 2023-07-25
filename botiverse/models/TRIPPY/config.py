@@ -4,7 +4,7 @@ This Module has the configuration class for TRIPPY.
 
 import tokenizers
 import os
-
+import gdown
 
 # Trippy configuration
 class TRIPPYConfig(object):
@@ -74,6 +74,11 @@ class TRIPPYConfig(object):
         self.dropout = dropout
         cur_dir = os.path.dirname(os.path.abspath(__file__))
         self.vocab_path = os.path.join(cur_dir, vocab_path)
+        if not os.path.exists(self.vocab_path):
+            print("Downloading Vocab...")
+            f_id = '1f2iOTT-QiFbIc1naqGVZWX5wPVo7gUMS' 
+            gdown.download(f'https://drive.google.com/uc?export=download&confirm=pbef&id={f_id}', self.vocab_path, quiet=False)
+            print("Done.")   
         self.tokenizer = tokenizers.BertWordPieceTokenizer(self.vocab_path, lowercase=True)
         self.ignore_idx = ignore_idx
         self.oper2id = oper2id
