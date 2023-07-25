@@ -111,6 +111,7 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+autodoc_member_order = 'bysource'
 
 # autodoc_mock_imports = ['gtts', 'playsound', 'gensim', 'waveglow', 'pydub', 'gdown', 'librosa', 'soundfile', '_ufuncs']
 
@@ -119,7 +120,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'sphinx_book_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

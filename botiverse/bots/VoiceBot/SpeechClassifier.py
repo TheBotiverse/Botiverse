@@ -17,8 +17,16 @@ class SpeechClassifier():
         '''
         Initialize the dataset and its transformation for the speech classification process.
         :param words: A list of words which are the classes of the speech classifier.
+        :type words: list
         :param samplerate: The sample rate of the audio files.
+        :type samplerate: int
         :param duration: The duration of the audio files in milliseconds.
+        :type duration: int
+        :param repr: The representation to use for the audio files. Can be 'wav2vec', 'mfcc', 'spectrogram' or a custom
+        representation.
+        :type repr: str or object
+        :param machine: The machine learning model to use for classification. Can be 'lstm' or a custom model.
+        :type machine: str or object
         '''
         self.words = words
         self.samplerate = samplerate
