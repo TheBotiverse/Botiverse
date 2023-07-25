@@ -7,10 +7,12 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   botiverse.bots.Vocalizer
-   botiverse.bots.basic_TODS
-   botiverse.bots.basic_chatbot
-   botiverse.bots.deep_TODS
+   botiverse.bots.BasicBot
+   botiverse.bots.BasicTaskBot
+   botiverse.bots.ConverseBot
+   botiverse.bots.TaskBot
+   botiverse.bots.VoiceBot
+   botiverse.bots.WhizBot
 
 Module contents
 ---------------

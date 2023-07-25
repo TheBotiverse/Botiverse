@@ -7,7 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   botiverse-tests.TODS_test
+   botiverse-tests.TaskBot_test
    botiverse-tests.basic_chatbot_test
 
 Module contents

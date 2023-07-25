@@ -1,5 +1,5 @@
 """
-This module ontains utility code used by the deep TODS module
+This module ontains utility code used by the deep Taskbot module
 such as Natural Language Understanding (NLU), Dialogue State Tracker (DST) ... etc.
 """
 

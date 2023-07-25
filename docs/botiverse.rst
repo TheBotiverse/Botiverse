@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   botiverse.Theorizer
    botiverse.bots
    botiverse.gui
    botiverse.models

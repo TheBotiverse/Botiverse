@@ -5,6 +5,7 @@ import spacy
 import benepar
 import numpy as np
 import math
+
 NLP = spacy.load('en_core_web_sm')
 benepar.download('benepar_en3')
 PARSER = benepar.Parser("benepar_en3")
@@ -13,7 +14,7 @@ FUNCTION_WORDS = set(
     [
         word.rstrip().lower()
         for word in open(
-            "botiverse/Theorizer/squad/info_extractor.py", "r", encoding="utf-8"
+            "botiverse/Theorizer/squad/function_words.txt", "r", encoding="utf-8"
         ).readlines()
     ]
 )

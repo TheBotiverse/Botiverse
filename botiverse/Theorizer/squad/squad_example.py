@@ -8,7 +8,7 @@ import os
 import multiprocess as mp
 import math
 import numpy as np
-
+import pickle as pkl
 
 @dataclass
 class SquadExample:
@@ -81,11 +81,30 @@ def create_squad_example_with_info(raw_ex: List[SquadExample]) -> List[SquadAugm
     Augment the raw examples with question-type and clue info.
     """
 
-    examples_with_info = []
-    for e in tqdm(raw_ex):
-        new_e = extract_clue_and_question_info(
-            sentence=e.context_text, question=e.question_text, answer=e.answer_text, answer_start=e.answer_start)
-        examples_with_info.append(new_e)
+    num_process = 1
+    start_index = 0
+    end_index = len(raw_ex)
+    batch_size = len(raw_ex) // num_process
+
+
+    def task(j):
+        start = start_index + j * batch_size
+        end = min(start_index + (j + 1) * batch_size, end_index)
+        examples = []
+        e: SquadExample
+        for e in tqdm(raw_ex[start:end], desc=f"Process {j}", position=j, leave=False):
+            new_e = extract_clue_and_question_info(
+                sentence=e.context_text, question=e.question_text, answer=e.answer_text, answer_start=e.answer_start)
+            examples.append(new_e)
+        return examples
+    
+    # examples_list = []
+    # with mp.Pool(num_process) as pool:
+    #     examples_list = pool.map(task, range(num_process))
+    
+    examples_with_info = task(0)
+    # for e in examples_list:
+        # examples_with_info += e
 
     return examples_with_info
 
@@ -238,14 +257,14 @@ def pipeline(input_file: str):
     """
     Pipeline for processing squad examples.
     """
-    # mp.set_start_method("spawn")
+    mp.set_start_method("spawn")
 
     raw_ex = read_squad_examples(input_file)
     raw_ex = raw_ex[:1000]
 
     processed_ex = create_process_squad_examples(raw_ex)
     print(processed_ex[:6])
-    with_info_ex = create_squad_example_with_info(raw_ex)
+    with_info_ex = create_squad_example_with_info(raw_ex[:1000])
 
     sample_probs = calculate_probability_distribution(with_info_ex)
 
@@ -253,5 +272,5 @@ def pipeline(input_file: str):
 
 
 if __name__ == "__main__":
-    data = pipeline("squad/dataset/train.txt")
+    data = pipeline("botiverse/Theorizer/squad/dataset/train.txt")
     print(data)
