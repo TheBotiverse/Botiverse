@@ -29,6 +29,7 @@ author = 'Botiverse Org.'
 # The full version, including alpha/beta/rc tags
 release = '1.0.0'
 
+autodoc_mock_imports = ['PyAudio']
 
 # -- General configuration ---------------------------------------------------
 

@@ -25,8 +25,6 @@ def read_requirements(name):
         requirements = f.read().splitlines()
     return requirements
 
-import os 
-on_rtd = os.environ.get('READTHEDOCS') == 'True'
 
 
 # This call to setup() does all the work
@@ -104,7 +102,7 @@ setup(
             'botiverse.gui.static.icons':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
             'botiverse.gui.templates':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
             },
-    install_requires=read_requirements('requirements.txt') if not on_rtd else [],
+    install_requires=read_requirements('requirements.txt'),
     extras_require={
         "voice": read_requirements("requirements_voice.txt"),
     }
