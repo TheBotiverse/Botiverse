@@ -6,6 +6,7 @@ Botiverse
 
    botiverse
    botiverse-tests
+   botiverse.Theorizer
    botiverse.bots
    botiverse.gui
    botiverse.models

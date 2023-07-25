@@ -1,7 +1,7 @@
 """
 This module contains the base code and interface of basic Taskbot.
 """
-from botiverse.bots.TaskBot.utils import RuleBasedNLU, MostRecentDST, RandomDP, TemplateBasedNLG
+from botiverse.bots.BasicTaskBot.utils import RuleBasedNLU, MostRecentDST, RandomDP, TemplateBasedNLG
 
 
 class BasicTaskBot:

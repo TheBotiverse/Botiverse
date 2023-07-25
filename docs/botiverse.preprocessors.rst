@@ -8,8 +8,10 @@ Subpackages
    :maxdepth: 4
 
    botiverse.preprocessors.BertEmbeddings
+   botiverse.preprocessors.BoW
    botiverse.preprocessors.Frequency
    botiverse.preprocessors.GloVe
+   botiverse.preprocessors.Special
    botiverse.preprocessors.TF_IDF
    botiverse.preprocessors.TF_IDF_GLOVE
    botiverse.preprocessors.Vocalize
