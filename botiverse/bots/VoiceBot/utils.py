@@ -1,4 +1,7 @@
-import pyaudio
+try:
+    import pyaudio
+except:
+    pass
 import wave
 from array import array
 from tqdm import tqdm

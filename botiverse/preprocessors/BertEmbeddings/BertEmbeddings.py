@@ -49,9 +49,10 @@ class BertEmbedder():
         return sentence_list[np.argmax(scores)] if not retun_ind else np.argmax(scores), np.max(scores)
     
     
-    
-from sentence_transformers import SentenceTransformer, util
-
+try:
+    from sentence_transformers import SentenceTransformer, util
+except:
+    pass
 
 class BertSentenceEmbedder():
     '''

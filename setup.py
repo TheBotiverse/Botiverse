@@ -25,14 +25,15 @@ def read_requirements(name):
         requirements = f.read().splitlines()
     return requirements
 
+import os 
+on_rtd = os.environ.get('READTHEDOCS') == 'True'
 
 
 # This call to setup() does all the work
 setup(
     name="botiverse",
-    version="0.4.8",
-    description='''botiverse is a chatbot library that offers a high-level API to
-    access a diverse set of chatbot models''',
+    version="0.4.12",
+    description='''botiverse is a chatbot library that offers a high-level API to access a diverse set of chatbot models''',
     long_description=readme,
     long_description_content_type="text/markdown",
     url="https://botiverse.readthedocs.io/",
@@ -62,8 +63,11 @@ setup(
               "botiverse.bots.ConverseBot", 
               "botiverse.bots.VoiceBot",
               "botiverse.bots.WhizBot", 
-              "botiverse.bots.basic_TODS",
-              "botiverse.bots.deep_TODS", 
+              "botiverse.bots.BasicTaskBot",
+              "botiverse.bots.TaskBot", 
+              "botiverse.Theorizer",
+              "botiverse.Theorizer.model",
+              "botiverse.Theorizer.squad",
               "botiverse.models",
               "botiverse.preprocessors", 
               "botiverse.gui",
@@ -100,7 +104,7 @@ setup(
             'botiverse.gui.static.icons':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
             'botiverse.gui.templates':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
             },
-    install_requires=read_requirements('requirements.txt'),
+    install_requires=read_requirements('requirements.txt') if not on_rtd else [],
     extras_require={
         "voice": read_requirements("requirements_voice.txt"),
     }

@@ -5,7 +5,7 @@
 # 
 # In this notebook, we shall demonstrate implementing FastSpeech 1.0 from scratch for inference purposes. 
 
-# In[106]:
+# In[1]:
 
 
 '''
@@ -156,8 +156,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 #   
 #   </div>
 
-# In[107]:
-
+# In[2]:
 
 
 class MultiHeadAttention(nn.Module):
@@ -236,7 +235,7 @@ class MultiHeadAttention(nn.Module):
 
 # $Embeddings ⇒ Conv1D ⇒ ReuLU ⇒ Conv1D ⇒  Dropout ⇒ AddNorm$
 
-# In[108]:
+# In[3]:
 
 
 class Conv1DNet(nn.Module):
@@ -281,7 +280,7 @@ class Conv1DNet(nn.Module):
 # 
 # Here we just put the two pieces together
 
-# In[109]:
+# In[4]:
 
 
 class FFTBlock(torch.nn.Module):
@@ -328,15 +327,15 @@ class FFTBlock(torch.nn.Module):
 # #### <font color="white"> Positional Encoding </font>
 
 # 
-# $$PE_{(pos, 2i)} = \sin\left(\frac{{pos}}{{10000^{2i/d_{\text{inp}}}}}\right)$$
+# $$PE_{(pos, 2i)} = \sin(\frac{{pos}}{{10000^{2i/d_{\text{inp}}}}})$$
 # 
 # 
-# $$PE_{(pos, 2i+1)} = \cos\left(\frac{{pos}}{{10000^{2i/d_{\text{inp}}}}}\right)$$
+# $$PE_{(pos, 2i+1)} = \cos(\frac{{pos}}{{10000^{2i/d_{\text{inp}}}}})$$
 # 
 
 # The purpose of this is to add some notion of order to the input sequence without distorting it by adding a positional depending signal
 
-# In[110]:
+# In[5]:
 
 
 class SinusoidEncodingTable:
@@ -384,8 +383,7 @@ class SinusoidEncodingTable:
 # 
 # This is both the encoder and decoder in one module
 
-# In[111]:
-
+# In[6]:
 
 
 class Dencoder(nn.Module):
@@ -449,8 +447,7 @@ class Dencoder(nn.Module):
 
 # $PhonemeEmb ⇒ Conv1D ⇒ ReuLU ⇒ LayerNorm ⇒  Dropout ⇒ Conv1D ⇒ ReuLU ⇒ LayerNorm ⇒  Dropout ⇒ Relu ⇒ Linear$
 
-# In[112]:
-
+# In[7]:
 
 
 class DurationPredictor(nn.Module):
@@ -507,7 +504,7 @@ class DurationPredictor(nn.Module):
 
 # Given $H=[h_1, h_2, ..., h_n]$ as phone embeddings from the encoder predict the duration of each phoneme $d=[d_1, d_2, ..., d_n]$ and repeat accordingly.
 
-# In[113]:
+# In[8]:
 
 
 class LengthRegulator(nn.Module):
@@ -562,8 +559,7 @@ class LengthRegulator(nn.Module):
 
 # #### Hyperparameters
 
-# In[114]:
-
+# In[9]:
 
 
 # Encoder
@@ -592,8 +588,7 @@ MEL_NUM = 80
 # #### <font color="white">FastSpeech</font>
 # 
 
-# In[115]:
-
+# In[10]:
 
 
 class FastSpeech(nn.Module):
@@ -642,18 +637,21 @@ class FastSpeech(nn.Module):
 
 # ## <font color="yellow"> Inference </font>
 
-# In[116]:
+# In[11]:
 
 
 import warnings; warnings.filterwarnings("ignore")
 from scipy.io.wavfile import write
-from playsound import playsound
+try:
+    from playsound import playsound
+    import waveglow
+except:
+    pass
 import os
-import waveglow
 import gdown
 
 
-# In[117]:
+# In[12]:
 
 
 class TTS():
@@ -681,7 +679,7 @@ class TTS():
         self.model.eval()
         self.WaveGlow = waveglow.load.load_model(download=force_download_wg)
     
-    def speak(self, text, play=True, save=False):
+    def speak(self, text, play=False, save=False):
         '''
         Pass given text through the FastSpeech 1.0 model and the WaveGlow model to generate speech.
         text: text to be spoken with at most 300 characters
@@ -715,7 +713,7 @@ class TTS():
         return audio
 
 
-# In[118]:
+# In[13]:
 
 
 # if running from notebook
