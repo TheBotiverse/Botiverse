@@ -29,7 +29,68 @@ author = 'Botiverse Org.'
 # The full version, including alpha/beta/rc tags
 release = '1.0.0'
 
-autodoc_mock_imports = ['PyAudio']
+"""
+PyAudio
+benepar
+cvxopt
+Flask
+gdown
+gensim
+matplotlib
+multiprocess
+nltk
+numpy
+pandas
+scikit_learn
+scipy
+setuptools
+spacy
+tokenizers
+torch
+tqdm
+transformers
+pyngrok
+waveglowpkg
+sentence-transformers
+torchaudio
+soundfile
+playsound
+pydub
+gtts
+librosa
+audiomentations
+"""
+
+autodoc_mock_imports = [
+'PyAudio',
+'benepar',
+'cvxopt',
+'Flask',
+'gdown',
+'gensim',
+'matplotlib',
+'multiprocess',
+'nltk',
+'numpy',
+'pandas',
+'scikit_learn',
+'scipy',
+'setuptools',
+'spacy',
+'tokenizers',
+'torch',
+'tqdm',
+'transformers',
+'pyngrok',
+'waveglowpkg',
+'sentence-transformers',
+'torchaudio',
+'soundfile',
+'playsound',
+'pydub',
+'gtts',
+'librosa',
+'audiomentations']
 
 # -- General configuration ---------------------------------------------------
 
