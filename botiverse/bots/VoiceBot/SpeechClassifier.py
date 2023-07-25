@@ -16,6 +16,7 @@ class SpeechClassifier():
     def __init__(self, words, samplerate, duration, repr='wav2vec', machine='lstm', **kwargs):
         '''
         Initialize the dataset and its transformation for the speech classification process.
+        
         :param words: A list of words which are the classes of the speech classifier.
         :type words: list
         :param samplerate: The sample rate of the audio files.
