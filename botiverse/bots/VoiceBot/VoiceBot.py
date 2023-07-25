@@ -1,15 +1,16 @@
-import numpy as np
-import json
-from gtts import gTTS
-import tempfile
-import os
-from botiverse.models import TTS
-from playsound import playsound
-
-from botiverse.models import LSTMClassifier
-from botiverse.preprocessors import Vocalize, Wav2Vec, Wav2Text, BertEmbedder, Frequency, BertSentenceEmbedder
-from botiverse.bots.VoiceBot.utils import voice_input
-
+try:
+    import numpy as np
+    import json
+    from gtts import gTTS
+    import tempfile
+    import os
+    from botiverse.models import TTS
+    from playsound import playsound
+    from botiverse.models import LSTMClassifier
+    from botiverse.preprocessors import Vocalize, Wav2Vec, Wav2Text, BertEmbedder, Frequency, BertSentenceEmbedder
+    from botiverse.bots.VoiceBot.utils import voice_input
+except:
+    pass
 
 class VoiceBot():
     '''An interface for the vocalizer chatbot which simulates a call with a customer service bot.'''

@@ -1,0 +1,5 @@
+include botiverse/models/TRIPPY/*.txt
+include botiverse/gui/static/icons/*.png
+include botiverse/gui/static/*.png
+include botiverse/gui/static/*.css
+include botiverse/gui/templates/*.html

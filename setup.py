@@ -18,10 +18,19 @@ HERE = path.abspath(path.dirname(__file__))
 with open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
     readme = f.read()
 
+# requirements.txt
+def read_requirements(name):
+    """Read requirements from requirements.txt."""
+    with open(path.join(HERE, name), encoding='utf-8') as f:
+        requirements = f.read().splitlines()
+    return requirements
+
+
+
 # This call to setup() does all the work
 setup(
     name="botiverse",
-    version="0.2.0",
+    version="0.4.4",
     description='''botiverse is a chatbot library that offers a high-level API to
     access a diverse set of chatbot models''',
     long_description=readme,
@@ -41,9 +50,60 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Operating System :: OS Independent"
     ],
-    packages=["botiverse", "botiverse.bots", "botiverse.models", "botiverse.preprocessors"],
-    include_package_data=True,
-    install_requires=["numpy", "torch"]            # just as was in requirements.txt
+    package_dir={
+        "botiverse": "botiverse",
+        "botiverse.bots": "botiverse/bots",
+        "botiverse.models": "botiverse/models",
+        "botiverse.preprocessors": "botiverse/preprocessors",
+    },
+    packages=["botiverse", 
+              "botiverse.bots", 
+              "botiverse.bots.BasicBot", 
+              "botiverse.bots.ConverseBot", 
+              "botiverse.bots.VoiceBot",
+              "botiverse.bots.WhizBot", 
+              "botiverse.bots.basic_TODS",
+              "botiverse.bots.deep_TODS", 
+              "botiverse.models",
+              "botiverse.preprocessors", 
+              "botiverse.gui",
+              "botiverse.models.BERT",
+              "botiverse.models.FastSpeech1",
+              "botiverse.models.GRUClassifier",
+              "botiverse.models.LinearClassifier",
+              "botiverse.models.LSTM",
+              "botiverse.models.NN",
+              "botiverse.models.SVM",
+              "botiverse.models.T5Model",
+              "botiverse.models.TRIPPY",
+              "botiverse.preprocessors.BertEmbeddings",
+              "botiverse.preprocessors.BoW",
+              "botiverse.preprocessors.Frequency",
+              "botiverse.preprocessors.GloVe",
+              "botiverse.preprocessors.Special",
+              "botiverse.preprocessors.Special.ConverseBot_Preprocessor",
+              "botiverse.preprocessors.Special.WhizBot_BERT_Preprocessor",
+              "botiverse.preprocessors.Special.WhizBot_GRU_Preprocessor",
+              "botiverse.preprocessors.GloVe",    
+              "botiverse.preprocessors.TF_IDF",
+              "botiverse.preprocessors.TF_IDF_GLOVE",
+              "botiverse.preprocessors.Vocalize",
+              "botiverse.preprocessors.Wav2Vec",
+              "botiverse.gui.static",
+              "botiverse.gui.static.icons",
+              "botiverse.gui.templates",
+              ],
+        include_package_data = True,
+        package_data={
+            'botiverse.gui':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
+            'botiverse.gui.static':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
+            'botiverse.gui.static.icons':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
+            'botiverse.gui.templates':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
+            },
+    install_requires=read_requirements('requirements.txt'),
+    extras_require={
+        "voice": read_requirements("requirements_voice.txt"),
+    }
 )
 
 

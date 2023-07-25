@@ -1,13 +1,15 @@
-import torchaudio
-import os
-from tqdm import tqdm
-import torch
-import librosa
-import numpy as np
-import matplotlib.pyplot as plt
-from torch.utils.data import Dataset
-from audiomentations import Compose, AddGaussianNoise, TimeStretch, PitchShift, Shift
-
+try:
+    import torchaudio
+    import os
+    from tqdm import tqdm
+    import torch
+    import librosa
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from torch.utils.data import Dataset
+    from audiomentations import Compose, AddGaussianNoise, TimeStretch, PitchShift, Shift
+except:
+    pass
 class Frequency():
     '''
     An interface for transforming audio files into frequency domain representations.

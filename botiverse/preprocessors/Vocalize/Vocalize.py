@@ -1,12 +1,15 @@
-from gtts import gTTS
-import os
-from tqdm import tqdm
-from pydub import AudioSegment
-import librosa
-import random
-import soundfile as sf
-import gdown
-import shutil
+try:
+    from gtts import gTTS
+    import os
+    from tqdm import tqdm
+    from pydub import AudioSegment
+    import librosa
+    import random
+    import soundfile as sf
+    import gdown
+    import shutil
+except:
+    print("You need to install pip install botiverse[voice] to use the Vocalize transformer.")
 
 class Vocalize():
     '''

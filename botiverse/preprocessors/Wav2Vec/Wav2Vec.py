@@ -1,12 +1,15 @@
-from audiomentations import Compose, AddGaussianNoise, TimeStretch, PitchShift, Shift
-from transformers import Wav2Vec2Model, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, Wav2Vec2ForCTC, Wav2Vec2PhonemeCTCTokenizer
-import os
-import torch
-import torchaudio
-from tqdm import tqdm
-import numpy as np
-# disable warnings from this file
-from transformers import logging
+try:
+    from audiomentations import Compose, AddGaussianNoise, TimeStretch, PitchShift, Shift
+    from transformers import Wav2Vec2Model, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, Wav2Vec2ForCTC, Wav2Vec2PhonemeCTCTokenizer
+    import os
+    import torch
+    import torchaudio
+    from tqdm import tqdm
+    import numpy as np
+    # disable warnings from this file
+    from transformers import logging
+except:
+    pass
 
 class Wav2Vec():
     '''
