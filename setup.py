@@ -97,6 +97,7 @@ setup(
               ],
         include_package_data = True,
         package_data={
+            'botiverse.Theorizer.squad':['*.txt'],
             'botiverse.gui':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
             'botiverse.gui.static':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
             'botiverse.gui.static.icons':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
