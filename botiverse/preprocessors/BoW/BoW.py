@@ -15,12 +15,14 @@ class BoW():
         :param binary: Whether to use binary BoW vectors instead of frequency BoW vectors.
         :type binary: bool
         '''
+        
         self.all_words = None
         self.binary = binary
         
     def transform_list(self, sentence_list, all_words):
         '''
         Given a list of tokenized sentences, return a table of BoW vectors (one for each sentence) in the form of a numpy array.
+        
         :param sentence_list: A list of tokenized sentences.
         :type sentence_list: list
         :param all_words: A list of all the words in the vocabulary.
@@ -43,7 +45,7 @@ class BoW():
         '''
         Given a sentence, return its BoW vector as a numpy array.
         
-        :param: sentence: A string of words
+        :param sentence: A string of words
         :type sentence: str
         
         :return: A BoW vector for the given sentence.

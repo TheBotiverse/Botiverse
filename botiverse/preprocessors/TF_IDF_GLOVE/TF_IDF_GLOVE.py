@@ -13,7 +13,7 @@ class TF_IDF_GLOVE():
         '''
         Initialize the GloVe and TF-IDF transformer and download the embeddings if needed.
         
-        :param: force_download: If True, download the embeddings even if they already exist.
+        :param force_download: If True, download the embeddings even if they already exist.
         :type force_download: bool
         '''
         self.glove = GloVe(force_download)
@@ -30,9 +30,9 @@ class TF_IDF_GLOVE():
         Given a list of tokenized sentences, return a table of idf-GloVe vectors (one for each sentence) in the form of a numpy array.
         This also initializes the tf and idf tables of the class for use in the transform() method.
         
-        :param: sentence_list: A list of tokenized sentences
+        :param sentence_list: A list of tokenized sentences
         :type sentence_list: list
-        :param: all_words: A list of all the words in the corpus
+        :param all_words: A list of all the words in the corpus
         :type all_words: list
         
         :return: A 2D numpy array of idf-GloVe vectors 
@@ -52,7 +52,7 @@ class TF_IDF_GLOVE():
         '''
         Given a sentence, return its idf-GloVe vector as a numpy array by weighting the GloVe vectors of the words in the sentence by their idf then averaging.
         
-        :param: sentence: A string of words
+        :param sentence: A string of words
         :type sentence: str
         
         :return: A numpy array of the idf-GloVe vector

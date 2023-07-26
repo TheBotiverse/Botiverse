@@ -19,7 +19,7 @@ class Vocalize():
         '''
         Initialize the Vocalize transformer by setting the input words and making the dataset.
         
-        :param: words: A list of words to be transformed into audio files
+        :param words: A list of words to be transformed into audio files
         :type words: list
         '''
         self.words = words
@@ -54,13 +54,13 @@ class Vocalize():
         Given a folder 'dataset' with folders each containing audio files, this randomly adds noise to each audio file and saves it
         by applying specific noise introduction logic. If noise is not found locally, it is downloaded from Google Drive.
         
-        :param: words: A list of words to be transformed into audio files (i.e., the folder names)
+        :param words: A list of words to be transformed into audio files (i.e., the folder names)
         :type words: list
-        :param: sample_rate: The sample rate of the audio files
+        :param sample_rate: The sample rate of the audio files
         :type sample_rate: int
-        :param: traffic: Whether to add traffic noise to the audio files
+        :param traffic: Whether to add traffic noise to the audio files
         :type traffic: bool
-        :param: force_download: Whether to force download the noise dataset even if it already exists.
+        :param force_download: Whether to force download the noise dataset even if it already exists.
         :type force_download: bool
         '''
         # if words is None then assume they are the folder names in dataset

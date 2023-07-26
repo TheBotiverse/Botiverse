@@ -19,11 +19,11 @@ class Wav2Vec():
         '''
         Initialize the Wav2Vec transformer by loading the wav2vec model and setting the sample rate and duration of the audio files.
         
-        :param: sample_rate: The sample rate of the audio files
+        :param sample_rate: The sample rate of the audio files
         :type sample_rate: int
-        :param: duration: The duration of the audio files in milliseconds   
+        :param duration: The duration of the audio files in milliseconds   
         :type duration: int
-        :param: augment: The audio augmentations to apply to the audio files.
+        :param augment: The audio augmentations to apply to the audio files.
         :type augment: audiomentations.Compose     
         '''
         logging.set_verbosity_error()
@@ -48,10 +48,10 @@ class Wav2Vec():
         Given a folder dataset with folders each containing audio files, this returns a table of wav2vec vectors (one for each audio file) in the form of a numpy array X and a table of classes in the form of a numpy array y.
         Note that in the process, each audio file is augmented n times and each corresponds to another wav2vec vector.
         
-        :param: words: A list of words which are the classes of the speech classifier.
-        :type: words: list
-        :param: n: The number of times to augment each audio file.
-        :type: n: int
+        :param words: A list of words which are the classes of the speech classifier.
+        :type words: list
+        :param n: The number of times to augment each audio file.
+        :type n: int
         
         :return: A tuple of the form (X, y) where X is a 3D numpy array representing the wav2vec vectors and y is a 1D numpy array representing the classes of the audio files.
         '''
@@ -102,9 +102,9 @@ class Wav2Vec():
         '''
         Convert the audio file as in the path into a wav2vec vector.
         
-        :param: path: The path to the audio file
+        :param path: The path to the audio file
         :type path: str
-        :param: strict_duration: If True, the audio file is padded or truncated to the duration specified during init.
+        :param strict_duration: If True, the audio file is padded or truncated to the duration specified during init.
         :type strict_duration: bool
         
         :return: The wav2vec vector of the audio file as a 2D numpy array.
@@ -144,7 +144,7 @@ class Wav2Text():
         '''
         Given a path to a speech file, return the transcription of the speech file.
         
-        :param: path: The path to the speech wav file
+        :param path: The path to the speech wav file
         :type path: str
         
         :return: The transcription of the speech file

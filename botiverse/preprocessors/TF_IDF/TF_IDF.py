@@ -17,9 +17,9 @@ class TF_IDF():
         '''
         Given a list of tokenized sentences, return a table of tf-idf vectors (one for each sentence) in the form of a numpy array.
         
-        :param: sentence_list: A list of tokenized sentences
+        :param sentence_list: A list of tokenized sentences
         :type sentence_list: list
-        :param: all_words: A list of all the words in the corpus
+        :param all_words: A list of all the words in the corpus
         :type all_words: list
         
         :return: A numpy array of tf-idf vectors
@@ -52,7 +52,7 @@ class TF_IDF():
         '''
         Given a sentence, return its tf-idf vector as a numpy array.
         
-        :param: sentence: A string of words
+        :param sentence: A string of words
         :type sentence: str
         
         :return: A numpy array of the tf-idf vector

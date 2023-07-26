@@ -65,10 +65,10 @@ class Frequency():
         '''
         Given a folder dataset with folders each containing audio files, this returns a table of spectra in the form of a numpy array X and a table of classes in the form of a numpy array y.
         
-        :param: words: A list of words which are the classes of the speech classifier.
-        :type: words: list
-        :param: n: The number of times to augment each audio file.
-        :type: n: int
+        :param words: A list of words which are the classes of the speech classifier.
+        :type words: list
+        :param n: The number of times to augment each audio file.
+        :type n: int
         
         :return: A tuple of the form (X, y) where X is a 3D numpy array representing the audio files and y is a 1D numpy array representing the classes of the audio files.
         :rtype: tuple of numpy.ndarray
