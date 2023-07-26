@@ -20,3 +20,6 @@ if not os.path.exists(os.path.join(model_dir,"pretrained-model")):
     url = "https://drive.google.com/drive/folders/1rUvMP1HdE_H4TAMG8HxHT6z5Y0ZOnBsg"
     gdown.download_folder(url,output=model_path,quiet=False)
     print("Done.")
+
+from spacy.cli import download
+download('en_core_web_sm')
