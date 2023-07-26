@@ -20,9 +20,9 @@ class BasicBot:
         
         :param name: The chatbot's name.
         :type name: string
-        :param machine: The machine learning model to use. Either 'nn' or 'svm', else must be a model object that has a fit method.
+        :param machine: The machine learning model to use. Either 'nn' or 'svm', else must be a model object that has appropriate fit and predict methods.
         :type machine: string
-        :param repr: The representation to use. Either 'glove', 'tf-idf', or 'tf-idf-glove' or 'bow', else must be a model object that has a transform method.
+        :param repr: The representation to use. Either 'glove', 'tf-idf', or 'tf-idf-glove' or 'bow', else must be a model object that has appropriate transform_list and transform methods.
         :type repr: string
         """
         self.model = None
@@ -51,7 +51,9 @@ class BasicBot:
 
     def setup_data(self):
         """
-        Given JSON data, set up the data for training by converting it to a list of sentences and their corresponding classes.
+        Internal method to setup the data for training. This method is called automatically when the train method is called.
+                
+        :meta private:
         """  
         all_words = []
         classes = []
@@ -86,8 +88,9 @@ class BasicBot:
     
     def read_data(self, path):
         """
-        Read the data from a JSON file for the chatbot to train on later.
-        :param data: A stringfied JSON object containing the training data 
+        Read the data from a JSON file found in `path` for the chatbot to train on later.
+        
+        :param path: The path to the JSON file
         :type number: string
         """
         with open(path, 'r') as f:
@@ -97,17 +100,13 @@ class BasicBot:
         
     def train(self, max_epochs=None, early_stop=False, **kwargs):
         """
-        Train the chatbot model with the given JSON data.
+        Train the chatbot model with previously read data.
         
-        :param early_stop: Whether to use early stopping or not
+        :param max_epochs: The maximum number of epochs to train for. If None, then the number of epochs is `30 * len(self.classes)`
+        :type max_epochs: int
+        :param early_stop: Whether to use early stopping or not. If True, the models stops whenever the validation loss stops decreasing for 100 epochs.
         :type early_stop: bool
-        :param provided_model: A model to use instead of the default one
-        :type provided_model: Object
-        :param provided_params: A dictionary of parameters to use instead of the default ones
-        :type provided_params: dict
-    
-        :return: None
-        :rtype: NoneType
+        :param kwargs: Any additional arguments to pass to the model's fit method.
         """
         X, y = self.X, self.y
         if self.machine == 'nn':
@@ -130,7 +129,8 @@ class BasicBot:
 
     def save(self, path):
         '''
-        Save the model to a file.
+        Save the chatbot model to a file. Not supported yet for SVM models.
+        
         :param path: The path to the file
         '''
         if self.machine == 'svm':
@@ -140,8 +140,12 @@ class BasicBot:
     
     def load(self, load_path, data_path):
         '''
-        Load the model from a file.
-        :param path: The path to the file
+        Load the model from a file. 
+        
+        :param load_path: The path to the file
+        :type load_path: string
+        :param data_path: The path to the JSON file containing the data used to train the model to sample responses from.
+        :type data_path: string
         '''
         if self.machine != 'nn':
             print("Could Not Load: SVM or custom model is for experimentation only and does not allow loading yet.")
@@ -167,10 +171,14 @@ class BasicBot:
         """
         Infer a suitable response to the given prompt.
         
-        :param promp: The user's prompt
-        :type number: string
-    
-        :return: The chatbot's response
+        :param prompt: The user's prompt
+        :type prompt: string
+        :param confidence: The minimum confidence (probability) required for the chatbot to respond. If None, then the confidence is `2/len(self.classes)`
+        :type confidence: float
+        :param test: Whether to return the class of the prompt instead of a response. Helpful to test on unkonwn data.
+        :type test: bool
+        
+        :return: The chatbot's response or the class of the prompt if `test` is True.
         :rtype: string
         """
         if confidence is None: confidence = 2/len(self.classes)

@@ -101,3 +101,5 @@ html_static_path = ['_static']
 
 # to create the html files locally run the following command in the docs folder
 # .\docs\make.bat html
+
+autoclass_content = 'both'

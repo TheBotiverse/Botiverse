@@ -33,9 +33,13 @@ class NeuralNet():
     def __init__(self, structure, activation='sigmoid', optimizer='ADAM'):
         '''
         Initialize the hyperparameters, weights and biases for the network. 
+        
         :param structure: A list of integers representing the number of neurons in each layer. For example, [2, 3, 1] is a network with 2 neurons in the input layer, 3 in the hidden layer, and 1 in the output layer.
+        :type structure: list
         :param activation: The activation function to use. Can be 'sigmoid' or 'relu'.
+        :type activation: str
         :param optimizer: The optimizer to use. Can be 'ADAM' or 'SGD'.
+        :type optimizer: str
         '''
         ### Hyperparameters
         self.structure = structure
@@ -82,9 +86,14 @@ NNClass = lambda func: setattr(NeuralNet, func.__name__, func) or func
 def backprop(self, xₛ , yₛ ):
     '''
     Compute the loss gradients მJⳆმBₙₛ, მJⳆმWₙₛ given an observation (xₛ , yₛ ) where xₛ and yₛ are column vectors. 
+    
     :param xₛ: The input vector of shape (d, 1).
+    :type xₛ: numpy.ndarray
     :param yₛ: The output vector of shape (K, 1).
+    :type yₛ: numpy.ndarray
+    
     :return: A tuple of lists (მJⳆმBₙₛ, მJⳆმWₙₛ) where მJⳆმBₙₛ is a list of the gradients of the loss function with respect to the biases and მJⳆმWₙₛ is a list of the gradients of the loss function with respect to the weights.
+    :rtype: tuple of lists
     '''
     h, dh, ᐁJ, g = self.h, self.dh, self.ᐁJ, self.g
 
@@ -122,11 +131,15 @@ def backprop(self, xₛ , yₛ ):
 def SGD(self, x_batch, y_batch, λ, α=0.01):
     '''
     Given a minibatch (a list/numpy array of tuples (xₛ, yₛ )) this will update Bₙ and Wₙ by applying SGD with L2 regularization.
+    
     :param x_batch: A list/numpy array of input vectors of shape (d, 1).
+    :type x_batch: numpy.ndarray or list
     :param y_batch: A list/numpy array of output vectors of shape (K, 1).
+    :type y_batch: numpy.ndarray or list
     :param λ: The learning rate.
+    :type λ: float
     :param α: The regularization parameter.
-    :return: None
+    :type α: float
     '''
     მJⳆმBₙ = [np.zeros(b.shape) for b in self.Bₙ]
     მJⳆმWₙ = [np.zeros(W.shape) for W in self.Wₙ]
@@ -148,13 +161,21 @@ def SGD(self, x_batch, y_batch, λ, α=0.01):
 def ADAM(self, x_batch, y_batch, λ, α=0.01, beta1=0.9, beta2=0.999, epsilon=1e-8):
     '''
     Given a minibatch (a list of tuples (xₛ, yₛ )) this will update Bₙ and Wₙ by applying Adam optimizer with L2 regularization.
+    
     :param x_batch: A list/numpy array of input vectors of shape (d, 1).
+    :type x_batch: numpy.ndarray or list
     :param y_batch: A list/numpy array of output vectors of shape (K, 1).
+    :type y_batch: numpy.ndarray or list
     :param λ: The learning rate.
+    :type λ: float
     :param α: The regularization parameter.
+    :type α: float
     :param beta1: The exponential decay rate for the first moment estimates.
+    :type beta1: float
     :param beta2: The exponential decay rate for the second-moment estimates.
+    :type beta2: float
     :param epsilon: A small constant for numerical stability.
+    :type epsilon: float
     '''
     mB = [np.zeros(b.shape) for b in self.Bₙ]           # momentum for Bₙ
     vB = [np.zeros(b.shape) for b in self.Bₙ]           # RMSprop for Bₙ
@@ -185,8 +206,12 @@ def feedforward(self, x ):
     h, g = self.h, self.g
     '''
     The forward pass of the network. Given an input x this will return the output of the network.
+    
     :param x: The input vector of shape (d, 1) where d is the number of input features.
+    :type x: numpy.ndarray
+    
     :return: The output vector of shape (K, 1) where K is the number of classes.
+    :rtype: numpy.ndarray
     '''
     a = x
     for i, (b, W) in enumerate(zip(self.Bₙ, self.Wₙ)):
@@ -205,16 +230,26 @@ def feedforward(self, x ):
 def fit(self, X, y, batch_size=32, epochs=200, λ=30, α=0.01, optimizer='ADAM', val_split=0.0, patience=50, eval_train=False):
     '''
     For each epoch, go over each minibatch and perform a gradient descent update accordingly and evaluate the model on the training and validation sets if needed.
+    
     :param X: The training data arranged as a float numpy array of shape (N, d)
+    :type X: numpy.ndarray
     :param y: The training labels arranged as a numpy array of shape (N,) where each element is an integer between 0 and k-1
+    :type y: numpy.ndarray
     :param batch_size: The size of the minibatches to use.
+    :type batch_size: int
     :param epochs: The number of epochs to run.
+    :type epochs: int
     :param λ: The learning rate.
+    :type λ: float
     :param α: The regularization parameter.
+    :type α: float
     :param optimizer: The optimizer to use. Can be 'ADAM' or 'SGD'.
+    :type optimizer: str
     :param val_split: The ratio of the validation set to the training set. If given, per-epoch validation will be performed.
+    :type val_split: float
     :param eval_train: Whether to evaluate the model on the training set.
-    :return: None
+    :type eval_train: bool
+    
     '''
     if val_split:
         X, y, X_v, y_v = split_data(X, y, val_split)
@@ -271,7 +306,9 @@ def fit(self, X, y, batch_size=32, epochs=200, λ=30, α=0.01, optimizer='ADAM',
 def predict(self, X):
     '''
     Predict the class of each example in X.
+    
     :param X: The test data arranged as a float numpy array of shape (N, d)
+    :type X: numpy.ndarray
     '''
     if len(X.shape) == 2:   X = X[..., np.newaxis]
     # return the predicted class and the probability of the predicted class
@@ -281,8 +318,11 @@ def predict(self, X):
 def evaluate(self, X,y, loss=False):
     '''
     Compare the one-hot vector y with the networks output yᴺ and calculate the accuracy.
+    
     :param X: The test data arranged as a float numpy array of shape (N, d)
+    :type X: numpy.ndarray
     :param y: The test labels arranged as a numpy array of shape (N,) where each element is an integer between 0 and k-1
+    :type y: numpy.ndarray
     '''
     if len(X.shape) == 2:   X = X[..., np.newaxis]
     if loss:
@@ -303,7 +343,9 @@ def evaluate(self, X,y, loss=False):
 def save(self, path):
     '''
     Save the model to the given path.
+    
     :param path: The path to save the model to.
+    :type path: str
     '''
     # store self.Bₙ, self.Wₙ, self.structure, self.activation, self.optimizer
     with open(path, 'wb') as f:
@@ -316,7 +358,9 @@ def save(self, path):
 def load(path):
     '''
     Load the model from the given path.
+    
     :param path: The path to load the model from.
+    :type path: str
     '''
     with open(path, 'rb') as f:
         class_dict = pickle.loads(f.read())

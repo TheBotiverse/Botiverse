@@ -9,10 +9,16 @@ from tqdm import tqdm
 def voice_input(record_time=3, voice_threshold=900, save_path='sample.wav'):
     '''
     Upon call, record audio for record_time seconds and save it to save_path while only inputting audio that is above the voice_threshold.
+    
     :param record_time: The number of seconds to record for.
+    :type record_time: int
     :param voice_threshold: The minimum volume of audio to record.
+    :type voice_threshold: int
     :param save_path: The path to save the audio file to.
+    :type save_path: str
+    
     :return: The path to the audio file.
+    :rtype: str
     '''
     # """"
     #instantiate the pyaudio

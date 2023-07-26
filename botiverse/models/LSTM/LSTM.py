@@ -45,8 +45,11 @@ class LSTMCell(nn.Module):
     def __init__(self, input_size, hidden_size):
         '''
         Initialize the parameters single LSTM layer given the size of the inputs and the required hidden size.
+        
         :param input_size: The size of the input to the LSTM layer
+        :type input_size: int
         :param hidden_size: The size of the hidden state of the LSTM layer
+        :type hidden_size: int
         '''
         super(LSTMCell, self).__init__()
         # input and output dimensions
@@ -65,10 +68,16 @@ class LSTMCell(nn.Module):
     def forward(self, input, h, c):
         '''
         Forward pass of the LSTM layer which passes in the input and previous states and returns the new hidden and cell states
+        
         :param input: The input to the LSTM layer which is of shape (batch_size, input_size)
+        :type input: torch.Tensor
         :param h: The previous hidden state of the LSTM layer which is of shape (batch_size, hidden_size)
+        :type h: torch.Tensor
         :param c: The previous cell state of the LSTM layer which is of shape (batch_size, hidden_size)
+        :type c: torch.Tensor
+        
         :return: The new hidden state and cell state of the LSTM layer which are of shapes (batch_size, hidden_size) each
+        :rtype: tuple
         '''
         # chunk the weights and biases of the gates
         weights = self.Wₓₕ(input) + self.Wₕₕ(h)
@@ -101,9 +110,13 @@ class LSTMX(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers=1):
         '''
         Initialize the parameters of an LSTM with an arbitrary number of layers all of which have the same hidden size.
+        
         :param input_size: The size of the input to the LSTM layer
+        :type input_size: int
         :param hidden_size: The size of the hidden state of the LSTM layer
+        :type hidden_size: int
         :param num_layers: The number of LSTM layers stacked on top of each other (default: 1)
+        :type num_layers: int
         '''
         super(LSTMX, self).__init__()
         self.input_size = input_size
@@ -120,9 +133,14 @@ class LSTMX(nn.Module):
         '''
         Forward pass of the LSTM which takes the input and initial hidden/cell state and returns the output
         due to the last token in the sequence.
+        
         :param input: The input to the LSTM layer which is of shape (batch_size, seq_len, input_size)
+        :type input: torch.Tensor
         :param hₒ: The initial hidden and cell states of the LSTM layer which are of shape (num_layers, batch_size, hidden_size)
+        :type hₒ: torch.Tensor
+        
         :return: The output due to the last token in the sequence which is of shape (batch_size, hidden_size)
+        :rtype: torch.Tensor
         '''
         # Input of shape (batch_size, seqence length , input_size)
         #
@@ -163,6 +181,16 @@ class LSTMClassifier(nn.Module):
     LSTMClassifier class defines a high-level interface of the LSTM model for classification.
     '''
     def __init__(self, input_size, hidden_size, num_classes):
+        """
+        Initialize the LSTMClassifier with the given parameters.
+        
+        :param input_size: The size of the input to the LSTM layer
+        :type input_size: int
+        :param hidden_size: The size of the hidden state of the LSTM layer
+        :type hidden_size: int
+        :param num_classes: The number of classes to classify the input into
+        :type num_classes: int
+        """
         super(LSTMClassifier, self).__init__()
         self.hidden_size = hidden_size
         self.lstm = LSTMX(input_size, hidden_size)
@@ -172,8 +200,12 @@ class LSTMClassifier(nn.Module):
     def forward(self, x):
         '''
         Forward pass of the LSTMClassifier which takes the input and passes it through all the LSTM layers and an output layer to produce an output.
+        
         :param x: The input to the LSTMClassifier which is of shape (batch_size, seq_len, input_size)
+        :type x: torch.Tensor
+        
         :return: The output of the LSTMClassifier which is of shape (batch_size, num_classes)
+        :rtype: torch.Tensor
         '''
         out = self.lstm(x)
         out = self.fc(out)
@@ -183,11 +215,17 @@ class LSTMClassifier(nn.Module):
     def fit(self, X, y, λ=0.001, α=1e-3, max_epochs=100, patience=5, val_ratio=0.2):
         '''
         Fit the LSTMClassifier to the given data.
+        
         :param X: The input data of shape (batch_size, seq_len, input_size)
+        :type X: numpy.ndarray
         :param y: The labels of the data of shape (batch_size)
+        :type y: numpy.ndarray
         :param hidden_size: The size of the hidden state of the LSTM layer (default: 64)
+        :type hidden_size: int
         :param λ: The learning rate (default: 0.001)
+        :type λ: float
         :param num_epochs: The number of epochs to train the model for (default: 100)
+        :type num_epochs: int
         '''
         Xt = torch.from_numpy(X)
         yt = torch.from_numpy(y)
@@ -239,8 +277,12 @@ class LSTMClassifier(nn.Module):
     def predict(self, X):
         '''
         Predict the labels of the given data by passing it through the LSTMClassifier.
+        
         :param X: The input data of shape (batch_size, seq_len, input_size)
+        :type X: numpy.ndarray
+        
         :return: The predicted labels of the data of shape (batch_size)
+        :rtype: numpy.ndarray
         '''
         Xt = torch.from_numpy(X)
         outputs = self(Xt)
@@ -252,9 +294,14 @@ class LSTMClassifier(nn.Module):
     def evaluate(self, Xt, yt):
         '''
         Evaluate the LSTMClassifier on the given data.
+        
         :param X: The input data of shape (batch_size, seq_len, input_size)
+        :type X: numpy.ndarray
         :param y: The labels of the data of shape (batch_size)
+        :type y: numpy.ndarray
+        
         :return: The accuracy of the LSTMClassifier on the given data
+        :rtype: float
         '''
         # check ig they are torch tensors
         if not isinstance(Xt, torch.Tensor) or not isinstance(yt, torch.Tensor):
@@ -268,14 +315,18 @@ class LSTMClassifier(nn.Module):
     def save(self, path):
         '''
         Save the LSTMClassifier to a file.
+        
         :param path: The path to the file
+        :type path: str
         '''
         torch.save(self.state_dict(), path)
     
     def load(self, path):
         '''
         Load the LSTMClassifier from a file.
+        
         :param path: The path to the file
+        :type path: str
         '''
         self.load_state_dict(torch.load(path))
 

@@ -16,8 +16,12 @@ class VoiceBot():
     '''An interface for the vocalizer chatbot which simulates a call with a customer service bot.'''
     def __init__(self,  call_json_path, repr='BERT-Sentence'):
         ''' 
-        Load the call data from a json file.
+        Load the call data from a json file that contains the call's state machine.
+        
         :param call_json_path: The path to the json file containing the call state machine.
+        :type call_json_path: str
+        :param repr: The numerical representation to use for the audio files. Can be 'BERT' or 'BERT-Sentence'.
+        :type repr: str
         '''
         with open(call_json_path, 'r') as file:
             call_json = file.read()
@@ -33,8 +37,11 @@ class VoiceBot():
     
     def generate_speech(self, text, offline=False):
         '''Use Google's TTS or offline FastSpeech 1.0 to play speech from the given text.
+        
         :param text: The text to be converted into speech.
+        :type text: str
         :param offline: Whether to use offline FastSpeech 1.0 to generate speech.
+        :type offline: bool
         '''
         if offline:
             tts = TTS()
@@ -48,7 +55,7 @@ class VoiceBot():
 
     def simulate_call(self):
         '''
-        Simulate a call with a customer service bot as driven by the call state machine.
+        Simulate a call with a voice bot as driven by the call state machine.
         '''
         while True:
             if self.current_node == 'Z':

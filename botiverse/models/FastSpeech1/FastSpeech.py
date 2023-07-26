@@ -159,22 +159,28 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # In[2]:
 
 
+import torch
+import torch.nn as nn
+import numpy as np
+
 class MultiHeadAttention(nn.Module):
     '''
     Multi-Head Attention module with a residual connection and layer normalization. Used as self-attention in the FFT block of the encoder and decoder.
+
+    :param num_head: Number of attention heads.
+    :type num_head: int
+    :param emb_dim: Input encoder/decoder embeddings dimensions.
+    :type emb_dim: int
+    :param h_dim: Hidden dimension (output dimension of the linear layers Wq, Wk, Wv).
+    :type h_dim: int
+    :param dropout: Dropout probability. Default is 0.1.
+    :type dropout: float, optional
     '''
     def __init__(self, num_head, emb_dim, h_dim, dropout=0.1):
-        '''
-        Initialize the parameters and structure of the Multi-Head Attention module.
-        num_head: number of heads
-        emb_dim: input encoder/decoder embeddings dimensions
-        h_dim: hidden dimension (output dimension of the linear layers Wq, Wk, Wv)
-        dropout: dropout probability
-        '''
         super().__init__()
 
         self.num_head = num_head
-        self.h_dim = h_dim                            # dimensionality of the final ouput
+        self.h_dim = h_dim                            # dimensionality of the final output
         self.head_dim = h_dim // num_head             # dimensionality of each head
 
         self.Wq = nn.Linear(emb_dim, h_dim)         # Equivalent to using head_dim, num_head times
@@ -192,12 +198,19 @@ class MultiHeadAttention(nn.Module):
        
     def forward(self, q, k, v, mask):
         '''
-        Pass given query, key and value through the Multi-Head Attention module.
-        q: query of shape [batch_size, seq_len, emb_dim]
-        k: key of shape [batch_size, seq_len, emb_dim]
-        v: value of shape [batch_size, seq_len, emb_dim]
-        mask: mask to apply to the attention so that padding tokens do not attend and are not attended to.
-        returns: output of shape [batch_size, seq_len, emb_dim]    
+        Pass given query, key, and value through the Multi-Head Attention module.
+
+        :param q: Query tensor of shape [batch_size, seq_len, emb_dim].
+        :type q: torch.Tensor
+        :param k: Key tensor of shape [batch_size, seq_len, emb_dim].
+        :type k: torch.Tensor
+        :param v: Value tensor of shape [batch_size, seq_len, emb_dim].
+        :type v: torch.Tensor
+        :param mask: Mask to apply to the attention so that padding tokens do not attend and are not attended to.
+        :type mask: torch.Tensor
+        
+        :returns: Output tensor of shape [batch_size, seq_len, emb_dim].
+        :rtype: torch.Tensor
         '''
         residual = q
         batch_size, num_head, seq_len, head_dim = q.size(0), self.num_head, q.size(1), self.head_dim
@@ -238,18 +251,22 @@ class MultiHeadAttention(nn.Module):
 # In[3]:
 
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 class Conv1DNet(nn.Module):
     '''
     1D convolutional network with residual connection and layer normalization. Used in the FFT block of the encoder and decoder.
+
+    :param inp_dim: Input dimension.
+    :type inp_dim: int
+    :param inner_dim: Inner dimension of the convolutional layers (output dimension of the first convolutional layer).
+    :type inner_dim: int
+    :param dropout: Dropout probability. Default is 0.1.
+    :type dropout: float, optional
     '''
-    
     def __init__(self, inp_dim, inner_dim, dropout=0.1):
-        '''
-        Initialize the parameters and structure of the 1D convolutional network.
-        inp_dim: input dimension
-        inner_dim: inner dimension of the convolutional layers (output dimension of the first convolutional layer)
-        dropout: dropout probability
-        '''
         super().__init__()
         # Both convolutions have SAME padding so they only change the number of 1D channels
         self.conv1 = nn.Conv1d(inp_dim, inner_dim, kernel_size=9, padding=4) # from n to n-9+2*4+1 = n
@@ -261,8 +278,11 @@ class Conv1DNet(nn.Module):
     def forward(self, x):   
         '''
         Pass given input through the 1D convolutional network. The input comes from the Multi-Head Attention module.
-        x: input of shape [batch_size, seq_len, d_in]
-        returns: output of shape [batch_size, seq_len, d_in]
+
+        :param x: Input tensor of shape [batch_size, seq_len, d_in].
+        :type x: torch.Tensor
+        :returns: Output tensor of shape [batch_size, seq_len, d_in].
+        :rtype: torch.Tensor
         '''
         residual = x                                     # [batch_size, seq_len, d_in]
         x = x.transpose(1, 2)                            # [batch_size, d_in, seq_len]
@@ -283,19 +303,24 @@ class Conv1DNet(nn.Module):
 # In[4]:
 
 
-class FFTBlock(torch.nn.Module):
+import torch.nn as nn
+
+class FFTBlock(nn.Module):
     '''
     FFT block used in the encoder and decoder. It consists of a Multi-Head Attention module and a 1D convolutional network.
+
+    :param emb_dim: Input encoder/decoder embeddings dimensions.
+    :type emb_dim: int
+    :param num_head: Number of heads for the Multi-Head Attention module.
+    :type num_head: int
+    :param h_dim: Hidden dimension (output dimension of the linear layers Wq, Wk, Wv).
+    :type h_dim: int
+    :param inner_dim: Inner dimension of the convolutional layers (output dimension of the first convolutional layer).
+    :type inner_dim: int
+    :param dropout: Dropout probability. Default is 0.1.
+    :type dropout: float, optional
     '''
-    def __init__(self,  emb_dim, num_head, h_dim,  inner_dim, dropout=0.1):
-        '''
-        Initialize the structure of the FFT block.
-        emb_dim: input encoder/decoder embeddings dimensions
-        inner_dim: inner dimension of the convolutional layers (output dimension of the first convolutional layer)
-        num_head: number of heads for the Multi-Head Attention module
-        h_dim: hidden dimension (output dimension of the linear layers Wq, Wk, Wv)
-        dropout: dropout probability
-        '''
+    def __init__(self, emb_dim, num_head, h_dim, inner_dim, dropout=0.1):
         super(FFTBlock, self).__init__()
         self.attn_out = MultiHeadAttention(num_head, emb_dim, h_dim, dropout=dropout)
         self.conv_out = Conv1DNet(emb_dim, inner_dim, dropout=dropout)
@@ -303,10 +328,15 @@ class FFTBlock(torch.nn.Module):
     def forward(self, input, non_pad_mask, attn_mask):
         '''
         Pass given encoder/decoder embeddings through the FFT block. The input comes from the previous FFT block or the input embeddings.
-        input: input of shape [batch_size, seq_len, emb_dim]
-        non_pad_mask: mask to nullify outputs due to padding tokens.
-        attn_mask: mask to apply to the attention so that future tokens do not attend and are not attended to.
-        returns: output of shape [batch_size, seq_len, emb_dim] and attention weights of shape [batch_size * num_head, seq_len, seq_len]
+
+        :param input: Input tensor of shape [batch_size, seq_len, emb_dim].
+        :type input: torch.Tensor
+        :param non_pad_mask: Mask to nullify outputs due to padding tokens.
+        :type non_pad_mask: torch.Tensor
+        :param attn_mask: Mask to apply to the attention so that future tokens do not attend and are not attended to.
+        :type attn_mask: torch.Tensor
+        :returns: Output tensor of shape [batch_size, seq_len, emb_dim] and attention weights tensor of shape [batch_size * num_head, seq_len, seq_len].
+        :rtype: tuple(torch.Tensor, torch.Tensor)
         '''
         non_pad_mask = non_pad_mask.float()
         # From [batch_size, seq_len, emb_dim] to [batch_size, seq_len, h_dim->emb_dim]
@@ -338,17 +368,21 @@ class FFTBlock(torch.nn.Module):
 # In[5]:
 
 
+import numpy as np
+import torch
+
 class SinusoidEncodingTable:
     '''
     Sinusoid encoding table used in the encoder and decoder. It is used to add positional information to the input embeddings.
+
+    :param max_seq_len: Maximum sequence length.
+    :type max_seq_len: int
+    :param inp_dim: Input encoder/decoder embeddings dimensions.
+    :type inp_dim: int
+    :param padding_idx: Index of the padding token. Default is None.
+    :type padding_idx: int, optional
     '''
     def __init__(self, max_seq_len, inp_dim, padding_idx=None):
-        '''
-        Initialize the parameters and structure of the sinusoid encoding table.
-        max_seq_len: maximum sequence length
-        inp_dim: input encoder/decoder embeddings dimensions
-        padding_idx: index of the padding token
-        '''
         self.max_seq_len = max_seq_len + 1
         self.inp_dim = inp_dim
         self.padding_idx = padding_idx
@@ -357,19 +391,21 @@ class SinusoidEncodingTable:
     def build_table(self):
         '''
         Build the sinusoid encoding table.
-        :returns: sinusoid encoding table of shape [max_seq_len, inp_dim] which is indexed by the position of the input embeddings and the index of input emeddings value.
+
+        :returns: Sinusoid encoding table of shape [max_seq_len, inp_dim] which is indexed by the position of the input embeddings and the index of the input embeddings value.
+        :rtype: torch.Tensor
         '''
-        # compute the denominator
+        # Compute the denominator
         inds = np.arange(self.inp_dim) // 2
         div_term = np.power(10000, 2 * inds / self.inp_dim)
 
-        # compute the numerator
+        # Compute the numerator
         positions = np.arange(self.max_seq_len)
-                
-        # compute table of shape [max_seq_len, inp_dim] 
+
+        # Compute the table of shape [max_seq_len, inp_dim]
         sinusoid_table = np.outer(positions, 1/div_term)
 
-        # apply sin to even indices in the array; 2i and cos to odd indices; 2i+1
+        # Apply sin to even indices in the array; 2i and cos to odd indices; 2i+1
         sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2]) 
         sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  
 
@@ -386,26 +422,36 @@ class SinusoidEncodingTable:
 # In[6]:
 
 
+import torch.nn as nn
+
 class Dencoder(nn.Module):
     '''
     A single module that implements the encoder and decoder of the FastSpeech 1.0 model. 
+
+    :param mode: 'Encoder' or 'Decoder'.
+    :type mode: str
+    :param vocab_dim: Vocabulary dimension. None if mode is 'Decoder'.
+    :type vocab_dim: int, optional
+    :param max_seq_len: Maximum sequence length as needed by the sinusoid encoding table.
+    :type max_seq_len: int
+    :param emb_dim: Encoder/decoder embeddings dimensions.
+    :type emb_dim: int
+    :param num_layer: Number of FFT blocks.
+    :type num_layer: int
+    :param num_head: Number of heads for the Multi-Head Attention module.
+    :type num_head: int
+    :param h_dim: Hidden dimension (output dimension of the linear layers Wq, Wk, Wv).
+    :type h_dim: int
+    :param d_inner: Inner dimension of the convolutional layers (output dimension of the first convolutional layer).
+    :type d_inner: int
+    :param mel_num: Number of mel spectrogram bins (to map the final decoder embeddings). None if mode is 'Encoder'.
+    :type mel_num: int, optional
+    :param dropout: Dropout probability.
+    :type dropout: float
     '''
     def __init__(self, mode, vocab_dim, max_seq_len, emb_dim, num_layer, num_head, h_dim, d_inner, mel_num, dropout):
-        '''
-        Initialize the parameters and structure of the encoder/decoder.
-        mode: 'Encoder' or 'Decoder'
-        vocab_dim: vocabulary dimension. None if mode is 'Decoder'
-        max_seq_len: maximum sequence length as needed by the sinusoid encoding table
-        emb_dim: encoder/decoder embeddings dimensions
-        num_layer: number of FFT blocks
-        num_head: number of heads for the Multi-Head Attention module
-        h_dim: hidden dimension (output dimension of the linear layers Wq, Wk, Wv)
-        d_inner: inner dimension of the convolutional layers (output dimension of the first convolutional layer)
-        mel_num: number of mel spectrogram bins (to map the final decoder embeddings). None if mode is 'Encoder'
-        dropout: dropout probability
-        '''
         super(Dencoder, self).__init__()
-        self.mode= mode
+        self.mode = mode
 
         self.embedding = nn.Embedding(vocab_dim, emb_dim, padding_idx=0) if self.mode == 'Encoder' else lambda x: x
 
@@ -419,8 +465,13 @@ class Dencoder(nn.Module):
     def forward(self, inp_seq, inp_seq_pos):                                            
         '''
         Pass given input sequence through the encoder/decoder.
-        inp_seq: input sequence of shape [batch_size, seq_len] for Encoder or [batch_size, seq_len, emb_dim] for Decoder
-        inp_seq_pos: input sequence positions of shape [batch_size, seq_len] 
+
+        :param inp_seq: Input sequence of shape [batch_size, seq_len] for Encoder or [batch_size, seq_len, emb_dim] for Decoder.
+        :type inp_seq: torch.Tensor
+        :param inp_seq_pos: Input sequence positions of shape [batch_size, seq_len].
+        :type inp_seq_pos: torch.Tensor
+        :returns: Output tensor of shape [batch_size, seq_len, emb_dim] for Decoder or [batch_size, seq_len, mel_num] for Encoder.
+        :rtype: torch.Tensor
         '''
         # Prepare non-pad and attention masks
         inp_attn = inp_seq if self.mode == 'Encoder' else inp_seq_pos              # [batch_size, seq_len]
@@ -431,7 +482,7 @@ class Dencoder(nn.Module):
         # Forward
         output = self.embedding(inp_seq) + self.position_encoding(inp_seq_pos)       # [batch_size, seq_len, emb_dim]
         for layer in self.layer_stack:
-            output = layer(output, non_pad_mask= non_pad_mask, attn_mask=attn_mask)
+            output = layer(output, non_pad_mask=non_pad_mask, attn_mask=attn_mask)
         
         output = self.linear(output)
         
@@ -450,19 +501,24 @@ class Dencoder(nn.Module):
 # In[7]:
 
 
+import torch.nn as nn
+
 class DurationPredictor(nn.Module):
     '''
     Duration predictor module. It predicts the duration of each phoneme in the input sequence of encoder phoneme embeddings.
+
+    :param inp_dim: Input dimension.
+    :type inp_dim: int
+    :param inner_dim: Inner dimension of the convolutional layers (output dimension of the first convolutional layer).
+    :type inner_dim: int
+    :param kernel_size: Kernel size of the convolutional layers.
+    :type kernel_size: int
+    :param padding_size: Padding size of the convolutional layers.
+    :type padding_size: int
+    :param dropout: Dropout probability. Default is 0.1.
+    :type dropout: float, optional
     '''
     def __init__(self, inp_dim, inner_dim, kernel_size, padding_size, dropout=0.1):
-        '''
-        Initialize the parameters and structure of the duration predictor module.
-        inp_dim: input dimension
-        inner_dim: inner dimension of the convolutional layers (output dimension of the first convolutional layer)
-        kernel_size: kernel size of the convolutional layers
-        padding_size: padding size of the convolutional layers
-        dropout: dropout probability
-        '''
         super(DurationPredictor, self).__init__()
 
         self.conv1d_1 = nn.Conv1d(inp_dim, inner_dim, kernel_size, padding=padding_size)
@@ -472,17 +528,20 @@ class DurationPredictor(nn.Module):
         self.conv1d_2 = nn.Conv1d(inner_dim, inner_dim, kernel_size, padding=padding_size)
         self.layer_norm_2 = nn.LayerNorm(inner_dim)
         self.linear_layer = nn.Linear(inner_dim, 1)     
-        # predicts a scalar mel_duration per phoneme
+        # Predicts a scalar mel_duration per phoneme
 
     def forward(self, encoder_output):
         '''
         Pass given encoder output through the duration predictor module. The input comes from the encoder. 
-        encoder_output: encoder output of shape [batch_size, seq_len, emb_dim]
-        returns: predicted duration of each phoneme in the input sequence of encoder phoneme embeddings of shape [batch_size, seq_len]
+
+        :param encoder_output: Encoder output of shape [batch_size, seq_len, emb_dim].
+        :type encoder_output: torch.Tensor
+        :returns: Predicted duration of each phoneme in the input sequence of encoder phoneme embeddings of shape [batch_size, seq_len].
+        :rtype: torch.Tensor
         '''
         x = encoder_output.contiguous().transpose(1, 2)
         x = self.conv1d_1(x)
-        x = x.contiguous().transpose(1,2)
+        x = x.contiguous().transpose(1, 2)
         x = self.relu(self.layer_norm_1(x))
         x = self.dropout(x)
         x = x.contiguous().transpose(1, 2)
@@ -507,37 +566,47 @@ class DurationPredictor(nn.Module):
 # In[8]:
 
 
+import torch
+import torch.nn as nn
+
 class LengthRegulator(nn.Module):
     '''
     Length regulator module. It repeats the encoder outputs according to the predicted duration of each phoneme in the input sequence of encoder phoneme embeddings.
+
+    :param inp_dim: Input dimension.
+    :type inp_dim: int
+    :param inner_dim: Inner dimension of the convolutional layers (output dimension of the first convolutional layer).
+    :type inner_dim: int
+    :param kernel_size: Kernel size of the convolutional layers.
+    :type kernel_size: int
+    :param padding_size: Padding size of the convolutional layers.
+    :type padding_size: int
+    :param dropout: Dropout probability. Default is 0.1.
+    :type dropout: float, optional
     '''
     def __init__(self, inp_dim, inner_dim, kernel_size, padding_size, dropout=0.1):
-        '''
-        Initialize the parameters and structure of the duration predictor module.
-        inp_dim: input dimension
-        inner_dim: inner dimension of the convolutional layers (output dimension of the first convolutional layer)
-        kernel_size: kernel size of the convolutional layers
-        padding_size: padding size of the convolutional layers
-        dropout: dropout probability
-        '''
         super(LengthRegulator, self).__init__()
         self.duration_predictor = DurationPredictor(inp_dim, inner_dim, kernel_size, padding_size, dropout)
 
     def forward(self, enc_output):
         '''
         Pass given encoder output through the length regulator module. The input comes from the encoder.
-        enc_output: encoder output of shape [batch_size, seq_len, emb_dim]
+
+        :param enc_output: Encoder output of shape [batch_size, seq_len, emb_dim].
+        :type enc_output: torch.Tensor
+        :returns: Modified encoder output of shape [batch_size, new_seq_len, emb_dim] and new positional encoding for the modified encoder output of shape [batch_size, new_seq_len].
+        :rtype: tuple(torch.Tensor, torch.Tensor)
         '''
         tiny_slowdown = 0.5                                  # to prevent rounding from dropping phonemes 
         duration_predictions = (self.duration_predictor(enc_output) + tiny_slowdown).int()
         # [batch_size, seq_len, enc_dim] to [batch_size, new_seq_len] (scalar mel_duration per phoneme)
         
-        # repeat each phoneme in the encoder output according to its predicted duration
+        # Repeat each phoneme in the encoder output according to its predicted duration
         new_seq_lens_per_batch = torch.sum(duration_predictions, -1)
         new_seq_len = torch.max(new_seq_lens_per_batch).item()
         
         batch_size, seq_len, enc_dim = enc_output.size()
-        mod_enc_output = torch.zeros((batch_size, new_seq_len, enc_dim))
+        mod_enc_output = torch.zeros((batch_size, new_seq_len, enc_dim), device=enc_output.device)
         for sequence in range(batch_size):
             count = 0
             for phoneme in range(seq_len):
@@ -547,8 +616,8 @@ class LengthRegulator(nn.Module):
                     mod_enc_output[sequence][count] = hidden
                     count += 1
         
-        # form a new positional encoding for the modified encoder output
-        output_pos = torch.LongTensor([i+1 for i in range(mod_enc_output.size(1))]).unsqueeze(0).to(device)
+        # Form a new positional encoding for the modified encoder output
+        output_pos = torch.LongTensor([i + 1 for i in range(mod_enc_output.size(1))]).unsqueeze(0).to(enc_output.device)
         # [batch_size, seq_len, enc_dim] -> [batch_size, new_seq_len, enc_dim] and [batch_size, new_seq_len]
         return mod_enc_output, output_pos
 
@@ -560,6 +629,7 @@ class LengthRegulator(nn.Module):
 # #### Hyperparameters
 
 # In[9]:
+
 
 
 # Encoder
@@ -591,9 +661,11 @@ MEL_NUM = 80
 # In[10]:
 
 
+import torch.nn as nn
+
 class FastSpeech(nn.Module):
     '''
-    FastSpeech 1.0 model. It consists of an encoder, a duration predictor, a length regulator and a decoder.
+    FastSpeech 1.0 model. It consists of an encoder, a duration predictor, a length regulator, and a decoder.
     '''
     def __init__(self):
         '''
@@ -610,15 +682,19 @@ class FastSpeech(nn.Module):
         
         self.decoder = Dencoder(mode='Decoder', vocab_dim=None, max_seq_len=MAX_SEQ_LEN, emb_dim=DEC_EMB_DIM, 
                                 num_layer=DEC_NUM_LAYER, num_head=DEC_NUM_HEAD, h_dim=DEC_EMB_DIM,
-                                d_inner=DEC_1D_FILTER_SIZE, mel_num=MEL_NUM,  dropout=DROPOUT_PROB)
+                                d_inner=DEC_1D_FILTER_SIZE, mel_num=MEL_NUM, dropout=DROPOUT_PROB)
 
 
     def forward(self, text_seq, src_pos):
         '''
-        Pass given input sequence through the FastSpeech 1.0 model. input sequence of shape [batch_size, seq_len] and assigns a unique id to each character in it.
-        text_seq: input sequence of shape [batch_size, seq_len]
-        src_pos: input sequence positions (indecies) of shape [batch_size, seq_len]
-        :returns: predicted mel spectrogram of shape [batch_size, mel_num, new_seq_len]
+        Pass given input sequence through the FastSpeech 1.0 model.
+
+        :param text_seq: Input sequence of shape [batch_size, seq_len] and assigns a unique id to each character in it.
+        :type text_seq: torch.Tensor
+        :param src_pos: Input sequence positions (indices) of shape [batch_size, seq_len].
+        :type src_pos: torch.Tensor
+        :returns: Predicted mel spectrogram of shape [batch_size, mel_num, new_seq_len].
+        :rtype: torch.Tensor
         '''
         enc_output = self.encoder(text_seq, src_pos)
         
@@ -655,12 +731,15 @@ import gdown
 
 
 class TTS():
+    '''
+    Text-to-Speech (TTS) class that implements the FastSpeech 1.0 model and the WaveGlow model for speech synthesis.
+
+    :param force_download_wg: Whether to force download the WaveGlow weights if they already seem to exist. Default is False.
+    :type force_download_wg: bool, optional
+    :param force_download_fs: Whether to force download the FastSpeech 1.0 weights if they already seem to exist. Default is False.
+    :type force_download_fs: bool, optional
+    '''
     def __init__(self, force_download_wg=False, force_download_fs=False):
-        '''
-        Initialize the FastSpeech 1.0 model and the WaveGlow model. 
-        force_download_wg: whether to force download the WaveGlow weights in case they already seems to exist 
-        force_download_fs: whether to force download the FastSpeech 1.0 wieghts in case they already seems to exist
-        '''
         # see if there is a WaveGlow folder in the current directory
         # print file and folder names in the current directory
         curr_dir = os.path.dirname(os.path.abspath(__file__))
@@ -682,9 +761,15 @@ class TTS():
     def speak(self, text, play=False, save=False):
         '''
         Pass given text through the FastSpeech 1.0 model and the WaveGlow model to generate speech.
-        text: text to be spoken with at most 300 characters
-        play: whether to play the generated speech
-        save: whether to save the generated speech
+
+        :param text: Text to be spoken with at most 300 characters.
+        :type text: str
+        :param play: Whether to play the generated speech. Default is False.
+        :type play: bool, optional
+        :param save: Whether to save the generated speech as an audio file. Default is False.
+        :type save: bool, optional
+        :returns: The generated speech as an audio signal.
+        :rtype: numpy.ndarray
         '''
         ascii_text = text.lower()
         sequence = np.array([self.symbol_to_id[s] for s in ascii_text if s in self.symbol_to_id ])

@@ -47,8 +47,18 @@ class SpeechClassifier():
 
     def generate_read_data(self, n=3, regenerate=False, force_download_noise=False, **kwargs):
         '''
-        Generate audio data for the words specified during init.
-        :param n: The number of audio files to generate for each word.
+        Generate synthetic audio data for the words specified during init and then corrupt it with noise and audio transformations.
+        
+        :param n: The number of audio files to generate for each word using audio transformations.
+        :type n: int
+        :param regenerate: Whether to regenerate the dataset even if it already exists.
+        :type regenerate: bool
+        :param force_download_noise: Whether to force download the noise dataset even if it already exists.
+        :type force_download_noise: bool
+        :param kwargs: Keyword arguments to be passed to the transformer (that puts audio in the chosen representation).
+        
+        :return: A tuple of the form (X, y) where X is a 3D numpy array representing the audio files and y is a 1D numpy array representing the classes of the audio files.
+        :rtype: tuple of numpy.ndarray
         '''
         # if there is no dataset folder or if the regenerate flag is set, generate the dataset
         if regenerate or not os.path.exists('dataset'):
@@ -60,10 +70,22 @@ class SpeechClassifier():
     def fit(self, X, y,  λ=0.001, α=0.01, hidden=128, patience=50, max_epochs=600, **kwargs):
         '''
         Train the speech classifier model.
+        
+        :param X: A 3D numpy array representing the audio files.
+        :type X: numpy.ndarray
+        :param y: A 1D numpy array representing the classes of the audio files.
+        :type y: numpy.ndarray
         :param λ: The learning rate parameter.
+        :type λ: float
         :param α: The regularization parameter.
+        :type α: float
+        :param hidden: The number of hidden units in the LSTM layer.
+        :type hidden: int
         :param patience: The number of bad epochs to wait before early stopping.
+        :type patience: int
         :param max_epochs: The maximum number of epochs to train for.
+        :type max_epochs: int
+        :param kwargs: Keyword arguments to be passed to the model's fit method.
         '''
         if self.machine == 'lstm':
             self.model = LSTMClassifier(X.shape[2], hidden, len(self.words))
@@ -77,6 +99,7 @@ class SpeechClassifier():
     def save(self, path):
         '''
         Save the model to a file.
+        
         :param path: The path to the file
         '''
         self.model.save(path+'.bot')
@@ -84,7 +107,9 @@ class SpeechClassifier():
     def load(self, path, **kwargs):
         '''
         Load the model from a file.
+        
         :param path: The path to the file
+        :param kwargs: Keyword arguments to be passed to the model's load method.
         '''
         if self.machine == 'lstm':
             self.model = LSTMClassifier(**kwargs)
@@ -98,9 +123,14 @@ class SpeechClassifier():
     def predict(self, path, index=False):
         '''
         Predict the class of the audio file at the given path.
+        
         :param path: The path to the audio file to be classified.
+        :type path: str
         :param index: Whether to return the index of the class or the class itself.
+        :type index: bool
+        
         :return: The class of the audio file at the given path.
+        :rtype: str or int
         '''
         vec = self.transformer.transform(path, strict_duration=False)
         pred, prob = self.model.predict(vec)
