@@ -179,7 +179,7 @@ class BasicBot:
         tag_idx, tag_prob = self.model.predict(vector)
         tag_idx, tag_prob = tag_idx[0], tag_prob[0]
         tag = self.classes[tag_idx]
-        if tag_prob < confidence: return "Could you rephrase that?"
+        if tag_prob < confidence: return "Sorry, I didn't get that. I'm only capable of answering questions about the following topics: " + ', '.join(self.classes)
         for intent in self.raw_data:
             if tag == intent["tag"]:
                 if test: return tag

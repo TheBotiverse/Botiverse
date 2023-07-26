@@ -31,12 +31,12 @@ body,html{
 
 .chat{
 	margin-top: 100;
-	margin-bottom: 0;
 }
 .card{
-	height: 500px;
+	height: 26rem;
 	border-radius: 30px !important;
 	background-color: rgba(0,0,0,0.4) !important;
+
 }
 .contacts_body{
 	padding:  0.75rem 0 !important;
@@ -176,6 +176,9 @@ border-radius: 0 0 15px 15px !important;
 	background-color: rgb(100, 240, 240);
 	padding: 10px;
 	position: relative;
+	font-size: 0.94rem;
+	text-align: justify;
+	text-justify: inter-word;
 }
 .msg_cotainer_send{
 	margin-top: auto;
@@ -185,6 +188,9 @@ border-radius: 0 0 15px 15px !important;
 	background-color: rgb(7, 190, 190);
 	padding: 10px;
 	position: relative;
+	font-size: 0.94rem;
+	text-align: justify;
+	text-justify: inter-word;
 }
 .msg_time{
 	position: absolute;

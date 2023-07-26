@@ -30,7 +30,7 @@ def read_requirements(name):
 # This call to setup() does all the work
 setup(
     name="botiverse",
-    version="0.4.12",
+    version="0.4.13",
     description='''botiverse is a chatbot library that offers a high-level API to access a diverse set of chatbot models''',
     long_description=readme,
     long_description_content_type="text/markdown",
@@ -102,9 +102,9 @@ setup(
             'botiverse.gui.static.icons':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
             'botiverse.gui.templates':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
             },
-    install_requires=read_requirements('requirements.txt'),
+    install_requires=read_requirements('./requirements/requirements.txt'),
     extras_require={
-        "voice": read_requirements("requirements_voice.txt"),
+        "voice": read_requirements("./requirements/requirements_voice.txt"),
     }
 )
 
