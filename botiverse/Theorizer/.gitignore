@@ -1,5 +1,6 @@
 Datasets/*
 train.txt
+merges.txt
 **.json
 models/pretrained-model/*
 **.bin
