@@ -7,11 +7,14 @@ from botiverse.preprocessors import GloVe, TF_IDF
 
 class TF_IDF_GLOVE():
     '''
-    An interface for transforming sentences into glove vectors by weighting word GloVe vectors by their tf-idf.
+    An interface for transforming sentences into idf-glove vectors by weighting word GloVe vectors by their tf-idf.
     '''
     def __init__(self, force_download=False):
         '''
         Initialize the GloVe and TF-IDF transformer and download the embeddings if needed.
+        
+        :param: force_download: If True, download the embeddings even if they already exist.
+        :type force_download: bool
         '''
         self.glove = GloVe(force_download)
         self.glove_dict = self.glove.glove_dict
@@ -24,10 +27,16 @@ class TF_IDF_GLOVE():
 
     def transform_list(self, sentence_list, all_words):
         '''
-        Given a list of tokenized sentences, return a table of GloVe vectors (one for each sentence) in the form of a numpy array.
+        Given a list of tokenized sentences, return a table of idf-GloVe vectors (one for each sentence) in the form of a numpy array.
         This also initializes the tf and idf tables of the class for use in the transform() method.
+        
         :param: sentence_list: A list of tokenized sentences
+        :type sentence_list: list
         :param: all_words: A list of all the words in the corpus
+        :type all_words: list
+        
+        :return: A 2D numpy array of idf-GloVe vectors 
+        :rtype: numpy.ndarray
         '''
         self.all_words = all_words
         # just to set tf and idf
@@ -41,9 +50,14 @@ class TF_IDF_GLOVE():
 
     def transform(self, sentence):
         '''
-        Given a sentence, return its GloVe vector as a numpy array by weighting the GloVe vectors of the words in the sentence by their idf then averaging.
+        Given a sentence, return its idf-GloVe vector as a numpy array by weighting the GloVe vectors of the words in the sentence by their idf then averaging.
+        
         :param: sentence: A string of words
-        :return: A numpy array of the GloVe vector
+        :type sentence: str
+        
+        :return: A numpy array of the idf-GloVe vector
+        :rtype: numpy.ndarray
+        
         '''
         tokens = list(tokenize(sentence, to_lower=True))
         tokens_s = [stemmer.stem(word.lower()) for word in tokens if word not in ['?', '!', '.', ',']]

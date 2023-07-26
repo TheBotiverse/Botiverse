@@ -16,9 +16,14 @@ class TF_IDF():
     def transform_list(self, sentence_list, all_words):
         '''
         Given a list of tokenized sentences, return a table of tf-idf vectors (one for each sentence) in the form of a numpy array.
+        
         :param: sentence_list: A list of tokenized sentences
+        :type sentence_list: list
         :param: all_words: A list of all the words in the corpus
+        :type all_words: list
+        
         :return: A numpy array of tf-idf vectors
+        :rtype: numpy.ndarray
         '''
         self.all_words = all_words
         # Compute the normalized frequency of each word in the document
@@ -46,8 +51,12 @@ class TF_IDF():
     def transform(self, sentence):
         '''
         Given a sentence, return its tf-idf vector as a numpy array.
+        
         :param: sentence: A string of words
+        :type sentence: str
+        
         :return: A numpy array of the tf-idf vector
+        :rtype: numpy.ndarray
         '''
         sentence = list(tokenize(sentence, to_lower=True))
         sentence = [stemmer.stem(word.lower()) for word in sentence if word not in ['?', '!', '.', ',']]

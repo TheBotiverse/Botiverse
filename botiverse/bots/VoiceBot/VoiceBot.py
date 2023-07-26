@@ -42,6 +42,8 @@ class VoiceBot():
         :type text: str
         :param offline: Whether to use offline FastSpeech 1.0 to generate speech.
         :type offline: bool
+        
+        :meta private:
         '''
         if offline:
             tts = TTS()

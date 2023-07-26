@@ -20,8 +20,14 @@ class BertEmbedder():
     def embed(self, sentences, random_state=42):
         '''
         Convert the given sentences into BERT embeddings.
+        
         :param sentences: A list of sentences to convert into BERT embeddings.
+        :type sentences: list
+        :param random_state: The random state to use for reproducibility.
+        :type random_state: int
+        
         :return: A list of BERT embeddings for the given sentences.
+        :rtype: list
         '''
         torch.manual_seed(random_state)
         tokss = self.tokenizer(sentences, return_tensors="pt", padding=True, truncation=True)
@@ -36,9 +42,16 @@ class BertEmbedder():
     def closest_sentence(self, new_sentence,  sentence_list, retun_ind=False):
         '''
         Given a list of sentences and a new sentence, return the sentence from the list that is closest to the new sentence.
+        
         :param new_sentence: The new sentence to compare to the list of sentences.
+        :type new_sentence: str
         :param sentence_list: A list of sentences to compare the new sentence to.
+        :type sentence_list: list
+        :param retun_ind: Whether to return the index of the closest sentence instead of the sentence itself.
+        :type retun_ind: bool
+        
         :return: The sentence from the list that is closest to the new sentence and its score.
+        :rtype: str, float
         '''
         new_sentence_embedding = self.embed(new_sentence)
         sentence_list_embeddings = [self.embed(sentence) for sentence in sentence_list]
@@ -67,14 +80,25 @@ class BertSentenceEmbedder():
     def embed(self, sentences):
         '''
         Convert the given sentences into BERT embeddings.
+        
         :param sentences: A list of sentences to convert into BERT embeddings.
+        :type sentences: list
+        
         :return: A list of BERT embeddings for the given sentences.
+        :rtype: list
         '''
         return self.model.encode(sentences, convert_to_tensor=True)
     
     def closest_sentence(self, new_sentence,  sentence_list, retun_ind=False):
         '''
         Given a list of sentences and a new sentence, return the sentence from the list that is closest to the new sentence.
+        
+        :param new_sentence: The new sentence to compare to the list of sentences.
+        :type new_sentence: str
+        :param sentence_list: A list of sentences to compare the new sentence to.
+        :type sentence_list: list
+        :param retun_ind: Whether to return the index of the closest sentence instead of the sentence itself.
+        :type retun_ind: bool
         '''
         new_sentence_embedding = self.embed(new_sentence)
         sentence_list_embeddings = self.embed(sentence_list)

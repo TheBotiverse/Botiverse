@@ -5,7 +5,7 @@
 # 
 # In this notebook, we shall demonstrate implementing multiclass SVM from scratch using the dual formulation and quadratic programming.
 
-# In[2]:
+# In[1]:
 
 
 '''
@@ -22,7 +22,7 @@ import pickle
 
 # ### SVM Class
 
-# In[3]:
+# In[2]:
 
 
 class SVM:
@@ -37,9 +37,13 @@ class SVM:
     def __init__(self, kernel='rbf', C=1, k=2):
         '''
         Initialize an instance of the SVM model.
+        
         :param kernel: The kernel function to use. Can be 'linear', 'polynomial', or 'rbf'.
+        :type kernel: str
         :param C: The regularization parameter.
+        :type C: float
         :param k: The hyperparameter for the polynomial and rbf kernels. Ignored for the linear kernel.
+        :type k: int
         '''
         self.kernel_str = kernel
         self.kernel = SVM.kernel_funs[kernel]
@@ -102,16 +106,20 @@ SVMClass = lambda func: setattr(SVM, func.__name__, func) or func
 # <br>
 # $ h = \begin{bmatrix} 0 \\ C \end{bmatrix} $
 
-# In[4]:
+# In[3]:
 
 
 @SVMClass
 def fit(self, X, y, eval_train=False):
     '''
     Fit the SVM model to the given data with N training examples and d features.
+    
     :param X: The training data arranged as a float numpy array of shape (N, d)
+    :type X: numpy.ndarray
     :param y: The training labels arranged as a numpy array of shape (N,) where each element is in {-1, 1} or {0, 1}.
-    :return: None
+    :type y: numpy.ndarray
+    :param eval_train: Whether to print the training accuracy after training is done.
+    :type eval_train: bool
     
     :note: This function assume C is not too small; otherwise, it becomes hard to distinguish support vectors.
     '''
@@ -157,16 +165,20 @@ def fit(self, X, y, eval_train=False):
 
 # In this, we train $K$ binary classifiers, where $K$ is the number of classes where each classifier perceives one class as +1 and all other classes as -1.
 
-# In[5]:
+# In[4]:
 
 
 @SVMClass
 def multi_fit(self, X, y, eval_train=False):
     '''
     Fit k classifier for k classes.
+    
     :param X: The training data arranged as a float numpy array of shape (N, d)
+    :type X: numpy.ndarray
     :param y: The training labels arranged as a numpy array of shape (N,) where each element is an integer between 0 and k-1
-    :return: None
+    :type y: numpy.ndarray
+    :param eval_train: Whether to print the training accuracy after training is done.
+    :type eval_train: bool
     '''
     self.k = len(np.unique(y))      # number of classes
     # for each pair of classes
@@ -193,16 +205,19 @@ def multi_fit(self, X, y, eval_train=False):
 # 
 # 
 
-# In[6]:
+# In[5]:
 
 
 @SVMClass
 def predict(self, X_t):
     '''
     Predict the labels for given test data.
+    
     :param X_t: The test data arranged as a float numpy array of shape (N, d)
-    :param return_score: If True, return the score instead of the label.
-    :return: The predicted labels arranged as a numpy array of shape (N,) where each element is in {-1, 1} or {0, 1} unless return_score is True in which case the SVM score is returned.
+    :return: The predicted labels arranged as a numpy array of shape (N,) where each element is in {-1, 1} or {0, 1}.
+
+    :return: The predicted labels arranged as a numpy array of shape (N,) and the scores for the positive class.   
+    :rtype: tuple 
     '''
     if self.multiclass: return self.multi_predict(X_t)
     xₛ, yₛ = self.X[self.margin_sv, np.newaxis], self.y[self.margin_sv]
@@ -217,8 +232,14 @@ def predict(self, X_t):
 def evaluate(self, X,y):
     '''
     Compare the predicted labels for given test data y with the actual labels by passing X to model.
+    
     :param X: The test data arranged as a float numpy array of shape (N, d)
+    :type X: numpy.ndarray
     :param y: The test labels arranged as a numpy array of shape (N,) where each element is an integer between 0 and k-1
+    :type y: numpy.ndarray
+    
+    :return: The accuracy of the model on the given test data.
+    :rtype: float
     '''
     outputs, _ = self.predict(X)
     accuracy = np.sum(outputs == y) / len(y)
@@ -230,15 +251,19 @@ def evaluate(self, X,y):
 
 # Each classifier compute the score of a class against all other classes. The class with the highest score is the predicted class.
 
-# In[7]:
+# In[6]:
 
 
 @SVMClass
 def multi_predict(self, X):
     '''
     Predict the labels for given test data.
+    
     :param X: The test data arranged as a float numpy array of shape (N, d)
-    :return: The predicted labels arranged as a numpy array of shape (N,) where each element is an integer between 0 and k-1.
+    :type X: numpy.ndarray
+    
+    :return: The predicted labels arranged as a numpy array of shape (N,) where each element is an integer between 0 and k-1 and the corresponding highest scores.
+    :rtype: tuple
     '''
     # get the predictions from all classifiers
     preds = np.zeros((X.shape[0], self.k))
@@ -253,36 +278,9 @@ def multi_predict(self, X):
     return np.argmax(preds, axis=1), np.max(preds, axis=1)
 
 
-# #### Saving and Loading
-
-# In[8]:
-
-
-@SVMClass
-def save(self, path):
-    '''
-    Save the model to the given path.
-    :param path: The path to save the model to.
-    '''
-    with open(path, 'wb') as f:
-        pickle.dump(self, f)
-        
-
-@staticmethod
-@SVMClass
-def load(path):
-    '''
-    load the model from the given path.
-    :param path: The path to load the model from.
-    '''
-    with open(path, 'rb') as f:
-        return pickle.load(f)
-        
-
-
 # ### Example
 
-# In[9]:
+# In[7]:
 
 
 # if running from notebook

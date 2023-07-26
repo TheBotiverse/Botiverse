@@ -11,7 +11,9 @@ class GloVe():
     def __init__(self, force_download=False):
         '''
         Initialize the GloVe transformer and download the embeddings if needed.
+        
         :param: force_download: If True, download the embeddings even if they already exist.
+        :type force_download: bool
         '''
         self.glove_dict = None
         self.load_glove_vectors(force_download=force_download)
@@ -20,7 +22,9 @@ class GloVe():
     def load_glove_vectors(self, force_download):
         '''
         Load GloVe vectors from gensim into the class. By default uses 50D vectors.
+        
         :param: force_download: If True, download the embeddings even if they already exist.
+        :type force_download: bool
         '''
         curr_dir = os.path.dirname(os.path.abspath(__file__))
         path = curr_dir + '/glove.6B.50d.txt'
@@ -44,8 +48,12 @@ class GloVe():
     def transform_list(self, sentence_list, **kwargs):
         '''
         Transform a sentence list into a numpy array of GloVe vectors
+        
         :param: sentence_list: A list of sentences
+        :type sentence_list: list
+        
         :return: A numpy array of GloVe vectors
+        :rtype: numpy.ndarray
         '''
         # make a numpy array of the sentence vectors
         X = np.zeros((len(sentence_list), 50))
@@ -56,8 +64,12 @@ class GloVe():
     def transform(self, sentence):
         '''
         Transform a sentence into a GloVe vector by averaging the word vectors in it.
+        
         :param: sentence: a string of words
+        :type sentence: str
+        
         :return: the corresponding GloVe vector
+        :rtype: numpy.ndarray
         '''
         tokens = list(tokenize(sentence, to_lower=True))
         vector_sum = np.zeros(50)  

@@ -23,8 +23,7 @@ class SpeechClassifier():
         :type samplerate: int
         :param duration: The duration of the audio files in milliseconds.
         :type duration: int
-        :param repr: The representation to use for the audio files. Can be 'wav2vec', 'mfcc', 'spectrogram' or a custom
-        representation.
+        :param repr: The representation to use for the audio files. Can be 'wav2vec', 'mfcc', 'spectrogram' or a custom representation
         :type repr: str or object
         :param machine: The machine learning model to use for classification. Can be 'lstm' or a custom model.
         :type machine: str or object
