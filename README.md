@@ -75,3 +75,4 @@ Botiverse offers 7 main chatbot architectures that cover a wide variety of use c
 
 <img width="1426" alt="image" src="https://github.com/TheBotiverse/Botiverse/assets/49572294/c75c9534-d4d4-4d70-a400-2f96b62f38c1">
 
+IN PROGRESS
