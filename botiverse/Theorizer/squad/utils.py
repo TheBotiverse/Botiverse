@@ -14,7 +14,7 @@ FUNCTION_WORDS = set(
     [
         word.rstrip().lower()
         for word in open(
-            "botiverse/Theorizer/squad/function_words.txt", "r", encoding="utf-8"
+            "botiverse/Theorizer/squad/function_words.txt.keep", "r", encoding="utf-8"
         ).readlines()
     ]
 )
