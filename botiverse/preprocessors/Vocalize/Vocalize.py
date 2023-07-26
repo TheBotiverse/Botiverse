@@ -2,14 +2,13 @@ try:
     from gtts import gTTS
     import os
     from tqdm import tqdm
-    from pydub import AudioSegment
     import librosa
     import random
     import soundfile as sf
     import gdown
     import shutil
 except:
-    print("You need to install pip install botiverse[voice] to use the Vocalize transformer.")
+    pass
 
 class Vocalize():
     '''
@@ -44,10 +43,10 @@ class Vocalize():
             for i, tld in enumerate(tlds):
                 tts = gTTS(text=word, lang="en", tld=tld, slow=False)                       # Sample rate of 24K
                 tts.save(f"dataset/{word}/{i}.mp3")
-                sound = AudioSegment.from_mp3(f"dataset/{word}/{i}.mp3")
-                sound.export(f"dataset/{word}/{i}.wav", format="wav")
+                # convert to wav
+                os.system(f"ffmpeg -i dataset/{word}/{i}.mp3 -acodec pcm_s16le -ac 1 -ar 16000 dataset/{word}/{i}.wav -loglevel quiet")                
+                # remove the mp3 file
                 os.remove(f"dataset/{word}/{i}.mp3")
-
     @staticmethod
     def corrupt_dataset(words=None, sample_rate=16000, traffic=False, force_download=False):
         '''

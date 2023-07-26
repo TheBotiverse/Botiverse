@@ -6,15 +6,22 @@ class chat_gui():
     chat_func = None
     bot_type = None
     # one of ['Whiz Bot', 'Basic Bot', 'Task Bot', 'Converse Bot', 'Voice Bot', 'Theorizer']
-    def __init__(self, bot_type, chat_func, collab=False, auth_token=None):
-        chat_gui.bot_type = bot_type
-        chat_gui.chat_func = chat_func
-        if collab:
-            ngrok.set_auth_token("2EN6nBHTHxD9kKRZsRFpdn4nNj2_d81ejeYV3pm844WLQXoi")
-            if auth_token:  ngrok.set_auth_token(auth_token)
-            ngrok_tunnel = ngrok.connect(5000)
-            print('Public URL:', ngrok_tunnel.public_url)
-        app.run()
+    def __init__(self, bot_type, chat_func, server=True, auth_token=None):
+        if server:
+            chat_gui.bot_type = bot_type
+            chat_gui.chat_func = chat_func
+            if auth_token:
+                ngrok.set_auth_token(auth_token)
+                if auth_token:  ngrok.set_auth_token(auth_token)
+                ngrok_tunnel = ngrok.connect(5000)
+                print('Public URL:', ngrok_tunnel.public_url)
+            app.run()
+        else:
+            while True:
+                input_text = input("You: ")
+                if input_text == "":    break
+                output=chat_func(input_text)
+                print(f"{bot_type}: {output}")
 
 app = Flask(__name__)
 

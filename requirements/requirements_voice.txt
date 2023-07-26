@@ -3,8 +3,7 @@ sentence-transformers
 PyAudio
 torchaudio
 soundfile
-playsound
-pydub
+playsound==1.2.2
 gtts
 librosa
 audiomentations

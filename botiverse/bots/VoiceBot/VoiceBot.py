@@ -50,10 +50,13 @@ class VoiceBot():
             tts.speak(text)
         else:
             tts = gTTS(text=text, lang='en', tld="us", slow=False)
-            with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temp_audio:
-                temp_filename = temp_audio.name
+            with tempfile.NamedTemporaryFile(delete=False) as temp_audio:
+                temp_filename = temp_audio.name + ".mp3"
                 tts.save(temp_filename)
+                # convert to wav
+                os.system(f"ffmpeg -i {temp_filename} -acodec pcm_s16le -ac 1 -ar 16000 {temp_filename[:-4]}.wav -loglevel quiet")
                 playsound(temp_filename)
+                
 
     def simulate_call(self):
         '''

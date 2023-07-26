@@ -30,7 +30,7 @@ def read_requirements(name):
 # This call to setup() does all the work
 setup(
     name="botiverse",
-    version="0.4.15",
+    version="0.4.16",
     description='''botiverse is a chatbot library that offers a high-level API to access a diverse set of chatbot models''',
     long_description=readme,
     long_description_content_type="text/markdown",
@@ -42,11 +42,8 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: 3.10",
         "Operating System :: OS Independent"
     ],
     package_dir={
@@ -98,6 +95,7 @@ setup(
         include_package_data = True,
         package_data={
             'botiverse.Theorizer.squad':['*.txt'],
+            'botiverse.models.TRIPPY': ['*.txt'],
             'botiverse.gui':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
             'botiverse.gui.static':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
             'botiverse.gui.static.icons':['*.zip', '*.png', '*pdf', '*jpeg','*ipynb', '*html', '*css', '*pkl', '*js'],
