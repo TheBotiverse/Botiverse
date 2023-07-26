@@ -8,6 +8,7 @@ from .utils import *
 from .info_extractor import *
 import pickle as pkl
 
+current_file_dir = os.path.dirname(os.path.abspath(__file__))
 
 @dataclass
 class AnswerSample:
@@ -226,7 +227,7 @@ def read_sample_probs(sample_probs_path):
     return sample_probs
 
 def select_with_default_sampel_probs(sentence):
-    sample_probs_path = "botiverse/Theorizer/squad/sample_probs.pkl"
+    sample_probs_path = os.path.join(current_file_dir,"sample_probs.pkl")
     sample_probs = read_sample_probs(sample_probs_path)
     selection = select(
         "Bob is eating a delicious cake in Vancouver.", sample_probs)

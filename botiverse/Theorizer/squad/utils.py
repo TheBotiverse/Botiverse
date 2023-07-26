@@ -5,7 +5,9 @@ import spacy
 import benepar
 import numpy as np
 import math
+import os
 
+current_file_dir = os.path.dirname(os.path.abspath(__file__))
 NLP = spacy.load('en_core_web_sm')
 benepar.download('benepar_en3')
 PARSER = benepar.Parser("benepar_en3")
@@ -14,7 +16,7 @@ FUNCTION_WORDS = set(
     [
         word.rstrip().lower()
         for word in open(
-            "botiverse/Theorizer/squad/function_words.txt.keep", "r", encoding="utf-8"
+            os.path.join(current_file_dir,"function_words.txt"), "r", encoding="utf-8"
         ).readlines()
     ]
 )

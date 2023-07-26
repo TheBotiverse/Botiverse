@@ -3,7 +3,9 @@ from botiverse.Theorizer.model.finetuned_model import MyGPT2LMHeadModel
 from botiverse.Theorizer.model.dataloader import SPECIAL_TOKENS_DICT
 from botiverse.Theorizer.squad.sample_data import select_with_default_sampel_probs
 from transformers import GPT2Tokenizer
+import os
 
+current_file_dir = os.path.dirname(os.path.abspath(__file__))
 
 def __prepare(context):
     sampled_infos = select_with_default_sampel_probs(context)
@@ -24,7 +26,8 @@ def __prepare(context):
 
 def generate(context, max_length=50):
     # Load the fine-tuned model and tokenizer
-    model_path_or_name = "botiverse/Theorizer/model/pretrained-model"
+    
+    model_path_or_name = os.path.join(current_file_dir,"model/pretrained-model")
     
     model = MyGPT2LMHeadModel.from_pretrained(
         model_path_or_name, ignore_mismatched_sizes=True
