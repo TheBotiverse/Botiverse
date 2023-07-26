@@ -23,3 +23,6 @@ if not os.path.exists(os.path.join(model_dir,"pretrained-model")):
 
 from spacy.cli import download
 download('en_core_web_sm')
+
+import nltk
+nltk.download('punkt')
