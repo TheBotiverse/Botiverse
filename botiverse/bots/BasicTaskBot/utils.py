@@ -125,6 +125,21 @@ class MostRecentDST:
         :rtype: dict[str, dict[str, str]]
         """
         return self.state
+    
+    def is_all_slots_filled(self, domain):
+        """
+        Checks if all slots in a certain domain are filled.
+
+        :param domain: The domain to be checked.
+        :type domain: str
+
+        :return: The success of the check.
+        :rtype: bool
+        """
+        for slot, value in self.state[domain].items():
+            if value is None:
+                return False
+        return True
 
     def reset(self, domain=None, slot=None):
         """
@@ -182,7 +197,7 @@ class RandomDP:
         max_len = len(unfilled)
 
         if max_len == 0:
-            return ""
+            return "ALL-FILLED"
 
         return unfilled[random.randint(0, max_len-1)]
 
@@ -213,5 +228,14 @@ class TemplateBasedNLG:
         :return: The generated question.
         :rtype: str
         """
-        max_len = len(self.templates[domain][slot])
-        return self.templates[domain][slot][random.randint(0, max_len-1)]
+        
+        response = ''
+        if slot == "ALL-FILLED":
+            if "ALL-FILLED" in self.templates[domain]:
+                max_len = len(self.templates[domain]["ALL-FILLED"])
+                response = self.templates[domain]["ALL-FILLED"][random.randint(0, max_len-1)]
+        else:
+            max_len = len(self.templates[domain][slot])
+            response = self.templates[domain][slot][random.randint(0, max_len-1)]
+
+        return response

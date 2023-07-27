@@ -28,15 +28,22 @@ class BasicTaskBot:
         inside the domain and the value is a Regex that is used to capture that slot.
     :type slots_pattern: dict[str, dict[str, str]]
 
+    :param verbose: Whether to print the internal state of the chatbot.
+    :type verbose: bool
+
+    :param append_state: Whether to append the internal state of the chatbot to the response.
+    :type append_state: bool
+
     """
 
-    def __init__(self, domains_slots, templates, domains_pattern, slots_pattern, verbose=False):
+    def __init__(self, domains_slots, templates, domains_pattern, slots_pattern, verbose=False, append_state=False):
         self.nlu = RuleBasedNLU(domains_pattern, slots_pattern)
         self.dst = MostRecentDST(domains_slots)
         self.dpo = RandomDP()
         self.nlg = TemplateBasedNLG(templates)
         self.verbose = verbose
         self.current_domain = None
+        self.append_state = append_state
 
     def read_data(self, data):
         """
@@ -90,13 +97,13 @@ class BasicTaskBot:
                 # get the action to be taken
                 action = self.dpo.get_action(self.current_domain, self.dst.get_dialogue_state())
                 # if no action is detected return empty response
-                if action == "":
-                    response = ""
-                else:
-                    response = self.nlg.generate(self.current_domain, action)
+                response = self.nlg.generate(self.current_domain, action)
 
         if self.verbose == True:
             print(f'State: {self.dst.get_dialogue_state()}')
+        
+        if self.append_state and self.dst.is_all_slots_filled(self.current_domain):
+            response += str(self.dst.get_dialogue_state()[self.current_domain])
 
         return response
 
