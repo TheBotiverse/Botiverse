@@ -7,6 +7,8 @@ building chatbots. It offers a <b>diverse set</b> of <b>modern chatbot architect
 offering optional <b>fine-grained control</b> for advanced use-cases.
 </p>
 
+Check this for the <a href="https://botiverse.readthedocs.io/en/latest/">documentation</a>.
+
 ## 🚀 Installation
 For standard use, consider
 ```shell
@@ -21,6 +23,22 @@ consider installing
 pip install botiverse[voice]
 ```
 and make sure to also have FFMPEG on your machine, as needed by the unavoidable dependency `PyAudio`.
+
+## 🏮 Basic Demo
+Import the chatbot you need from `botiverse.bots`. All bots have a similar interface consisting of a read, train and infer method.
+
+```python
+from botiverse.bots import BasicBot
+
+# make a chatbot instance
+bot = BasicBot(machine='nn', repr='tf-idf')
+# read the data
+bot.read_data('dataset.json')
+# train the chatbot
+bot.train()
+# infer
+bot.infer("Hello there!")
+```
 
 ## 💥 Supported Chatbots
 Botiverse offers 7 main chatbot architectures that cover a wide variety of use cases:
@@ -41,7 +59,7 @@ Botiverse offers 7 main chatbot architectures that cover a wide variety of use c
     <tr>
     <td>Whiz Bot</td>
     <td>A multi-lingual intent-based chatbot based on deep sequential models</td>
-    <td>Similar to basic bot but suitable for cases where there is more data or better performance is needed in return of more computation</td>
+    <td>Similar to basic bot but suitable for cases where there is more data or better performance or multilinguality is needed in return of more computation</td>
   </tr>
     <tr>
     <td>Task Bot</td>
@@ -50,14 +68,14 @@ Botiverse offers 7 main chatbot architectures that cover a wide variety of use c
   </tr>
     </tr>
   <tr>
-    <td>Task Bot</td>
+    <td>Basic Task Bot</td>
     <td>A basic light-weight version of the task bot purely based on Regex and grammars</td>
     <td>When insufficient data exists for the deep version and developers are willing to design a general grammar for the task</td>
   </tr>
   <tr>
     <td>Converse Bot</td>
     <td>A conversational chatbot based on language modeling with transformers</td>
-    <td>A chatbot that converses similar to human agents; e.g., a narrow version of ChatGPT as customer service</td>
+    <td>A chatbot that converses similar to human agents; e.g., like a narrow version of ChatGPT as customer service</td>
   </tr>
     <tr>
     <td>Voice Bot</td>
@@ -73,6 +91,12 @@ Botiverse offers 7 main chatbot architectures that cover a wide variety of use c
 
 ## 💥 Supported Preprocessors and Models
 
-<img width="1426" alt="image" src="https://github.com/TheBotiverse/Botiverse/assets/49572294/c75c9534-d4d4-4d70-a400-2f96b62f38c1">
+<img width="1426" alt="image" src="https://github.com/TheBotiverse/Botiverse/assets/49572294/15520524-07cc-4bb1-a230-198cba398da7">
 
-IN PROGRESS
+
+- All chatbot architectures that Botiverse support (i.e., in `botiverse.bots`) are composed of a representer that puts the input text or audio in the right representation and a model that is responsible for the model's output.
+- All representers (top row) and models (bottom row) with a non-white frame were implemented from scratch for some definition of that.
+- Beyond being a chatbot package, most representers and models can be also used independently and share the same API. For instance, you can import your favorite model or representer from `botiverse.models` or `botiverse.preprocessors` respectively and use it for any task.
+- Some chatbot architectures also allows using a customly defined representer or model as long as it satisfies the relevant interface.
+
+
