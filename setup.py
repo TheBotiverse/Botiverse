@@ -30,7 +30,7 @@ def read_requirements(name):
 # This call to setup() does all the work
 setup(
     name="botiverse",
-    version="0.4.16",
+    version="0.5.0",
     description='''botiverse is a chatbot library that offers a high-level API to access a diverse set of chatbot models''',
     long_description=readme,
     long_description_content_type="text/markdown",
