@@ -1,7 +1,7 @@
 <div align="center">
 <img src="https://github.com/TheBotiverse/Botiverse/assets/49572294/4cb418bb-de6f-4f13-9df4-878d4b50d66d" height=120/>
 </div>
-<p>
+<p align='justify'>
 <b>Botiverse</b> is Python package that bridges the gap between developers <i>regardless of their machine learning expertise</i> and 
 building chatbots. It offers a <b>diverse set</b> of <b>modern chatbot architectures</b> that are <b>ready to be trained</b> in a <b>high-level fashion</b> while 
 offering optional <b>fine-grained control</b> for advanced use-cases.
