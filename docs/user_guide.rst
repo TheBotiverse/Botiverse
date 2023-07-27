@@ -13,3 +13,4 @@ User Guide
    :numbered:
 
    introduction.rst
+   Home.md

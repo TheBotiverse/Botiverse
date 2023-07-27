@@ -136,7 +136,10 @@ class BasicBot:
         if self.machine == 'svm':
             print("Could Not Save: SVM model is for experimentation only and does not allow saving yet.")
         else:
-            self.model.save(path+'.bot')
+            if type(self.machine) != str:
+                self.machine.save(path+'.bot')
+            else:
+                self.model.save(path+'.bot')
     
     def load(self, load_path, data_path):
         '''
@@ -147,10 +150,13 @@ class BasicBot:
         :param data_path: The path to the JSON file containing the data used to train the model to sample responses from.
         :type data_path: string
         '''
-        if self.machine != 'nn':
-            print("Could Not Load: SVM or custom model is for experimentation only and does not allow loading yet.")
+        if self.machine == 'svm':
+            print("Could Not Load: SVM is for experimentation only and does not allow loading yet.")
         else:
-            self.model = NeuralNet.load(load_path + '.bot')
+            if type(self.machine) != str:
+                self.model = self.machine.load(load_path + '.bot')
+            else:
+                self.model = NeuralNet.load(load_path + '.bot')
             # following can be optimized.
             with open(data_path, 'r') as f:
                 self.raw_data = json.load(f)
