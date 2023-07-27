@@ -94,12 +94,12 @@ Botiverse offers 7 main chatbot architectures that cover a wide variety of use c
 <img width="1426" alt="image" src="https://github.com/TheBotiverse/Botiverse/assets/49572294/15520524-07cc-4bb1-a230-198cba398da7">
 
 
-- All chatbot architectures that Botiverse support (i.e., in `botiverse.bots`) are composed of a representer that puts the input text or audio in the right representation and a model that is responsible for the model's output.
+- All chatbot architectures that Botiverse support (i.e., in `botiverse.bots`) are composed of a representer that puts the input text or audio in the right representation and a model that is responsible for the chatbot's output.
 - All representers (top row) and models (bottom row) with a non-white frame were implemented from scratch for some definition of that.
-- Beyond being a chatbot package, most representers and models can be also used independently and share the same API. For instance, you can import your favorite model or representer from `botiverse.models` or `botiverse.preprocessors` respectively and use it for any task.
-- Some chatbot architectures also allows using a customly defined representer or model as long as it satisfies the relevant interface.
+- Beyond being a chatbot package, most representers and models can be also used independently and share the same API. For instance, you can import your favorite model or representer from `botiverse.models` or `botiverse.preprocessors` respectively and use it for any ordinary machine learning task.
+- It follows that some chatbot architectures also allow using a customly defined representer or model as long as it satisfies the relevant unified interface (as in the docs).
 
-Now let's learn more about each chatbot available inn `botiverse.bots.`
+Now let's learn more about each chatbot available inn `botiverse.bots`
 
 ## <img width="30" alt="image" src="https://github.com/TheBotiverse/Botiverse/assets/49572294/501fc8ff-9849-4e6d-9ed5-eaf10c04eefb"> Basic Bot
 ### 🏃‍♂️ Quick Example
@@ -113,19 +113,21 @@ bot.infer("Hello there!")
 Please check this for the [documentation](https://botiverse.readthedocs.io/en/latest/botiverse.bots.BasicBot.html) which also includes the [user guide](https://botiverse.readthedocs.io/en/latest/BasicBot.html).
 
 ### 🏮 Demo
-The following is the result (in its best form) from training the `Basic Bot` on a small synthetic `dataset.json` as found in the examples to answer FAQs for a university website
+The following is the result (in its best form) from training the `Basic Bot` on a small synthetic `dataset.json` as found in the examples to
+ answer FAQs for a university website
 
-
+![Basic](https://github.com/TheBotiverse/Botiverse/assets/49572294/976edf97-66be-468b-9c1b-3533edd7c3d1)
 
 You can simulate a similar demo offline using the notebook in the `Examples` folder or online on [Google collab](google.com).
 > Google colab won't have a server to run the chat gui, the options are to use a humble version by setting `server=False` or to provide an [ngrok](https://ngrok.com/) authentication token in the `auth_token` argument.
 
-You can simulate a similar demo offline using the notebook in the `Examples` folder or online on [Google collab](google.com).
+> You will have to manually drop the dataset from the examples folder into the data section in colab.
 
 ## <img width="30" alt="image" src="https://github.com/TheBotiverse/Botiverse/assets/49572294/63bd3fde-dc1b-470f-a43e-6de61a33ca56"> Whiz Bot
 ### 🏃‍♂️ Quick Example
 ```python
 bot = WhizBot(repr='BERT')
+
 bot.read_data('./dataset_ar.json')
 bot.train(epochs=10, batch_size=32)
 bot.infer("ما هي الدورات المتاحة؟")
@@ -136,6 +138,7 @@ Please check this for the [documentation](https://botiverse.readthedocs.io/en/la
 ### 🏮 Demo
 The following is the result (in its best form) from training the `Whiz Bot` on a small synthetic `dataset.json` as found in the examples to answer FAQs for a university website in Arabic
 
+![Whiz](https://github.com/TheBotiverse/Botiverse/assets/49572294/d85c2825-5061-4d5e-b8b3-67823e93f789)
 
 
 You can simulate a similar demo offline using the notebook in the `Examples` folder or online on [Google collab](google.com).
@@ -156,6 +159,9 @@ Please check this for the [documentation](https://botiverse.readthedocs.io/en/la
 ### 🏮 Demo
 The following is the result from building a simple `Basic Task Bot` to perform simple flight booking tasks
 
+![BasicTask](https://github.com/TheBotiverse/Botiverse/assets/49572294/ea319c36-5574-4434-99cc-67f18ad9593f)
+
+
 You can simulate a similar demo offline using the notebook in the `Examples` folder or online on [Google collab](google.com).
 
 
@@ -173,6 +179,9 @@ Please check this for the [documentation](https://botiverse.readthedocs.io/en/la
 ### 🏮 Demo
 The following is the result from training the `Task Bot` on the [sim-R](https://github.com/google-research-datasets/simulated-dialogue) dataset which includes many possible tasks.
 
+![TaskBot](https://github.com/TheBotiverse/Botiverse/assets/49572294/1bc188a6-c15d-4fad-b72c-421340b7e00c)
+
+
 You can simulate a similar demo offline using the notebook in the `Examples` folder or online on [Google collab](google.com).
 
 
@@ -189,7 +198,9 @@ bot.infer("What is Wikipedia?")
 Please check this for the [documentation](https://botiverse.readthedocs.io/en/latest/botiverse.bots.ConverseBot.html) which also includes the [user guide](https://botiverse.readthedocs.io/en/latest/ConverseBot.html).
 
 ### 🏮 Demo
-The following is the result from training the `Converse Bot` on Amazon customer service conversations dataset after further pretraining it on a large corpus of conversation
+The following is the result from the `Converse Bot` before training on Amazon customer service conversations dataset and after it was pretrained on an assistance corpus. You can check for post-training results by checking the examples (training takes time).
+
+![Converse](https://github.com/TheBotiverse/Botiverse/assets/49572294/f343a884-86c4-42ab-9339-1c5a34393bd5)
 
 You can simulate a similar demo offline using the notebook in the `Examples` folder or online on [Google collab](google.com).
 
@@ -206,6 +217,9 @@ Please check this for the [documentation](https://botiverse.readthedocs.io/en/la
 ### 🏮 Demo
 The following is the result from building a `Voice Bot` on a hand-crafted call state machine as found in the examples. The voice bot requires no training data.
 
+
+https://github.com/TheBotiverse/Botiverse/assets/49572294/cd58965e-3659-4495-baa1-d87da1c01215
+
 You can only simulate a similar demo offline using the notebook in the `Examples` folder. This applies to both the voice bot and the speech classifier.
 
 ## <img width="25" alt="image" src="https://github.com/TheBotiverse/Botiverse/assets/49572294/ba7a4ab4-74ed-46f4-a071-4e29ba1a3a72"> Theorizer
@@ -220,3 +234,8 @@ Please check this for the [documentation](https://botiverse.readthedocs.io/en/la
 
 ### 🏮 Demo
 No demo is available yet for the Theorizer; you may check the example in the `Examples` folder. 
+
+
+## 🌆 Models and Preprocessors
+Most could be indepdendently used in any task; please consult the relevant section of the [documentation](https://botiverse.readthedocs.io/en/latest/) and the `Examples` folder.
+
