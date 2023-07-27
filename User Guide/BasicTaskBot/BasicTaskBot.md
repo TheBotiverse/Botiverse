@@ -108,5 +108,3 @@ chat_gui('Task Bot', chatbot.infer)
 
 
     <botiverse.gui.gui.chat_gui at 0x106a484f0>
-
-

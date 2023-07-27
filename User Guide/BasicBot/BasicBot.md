@@ -1,6 +1,6 @@
-# Basic Bot Demo
+# Basic Bot Guide
 
-We start by importing the basic bot from `botiverse.bots`.
+We start by importing the basic bot from `botiverse.bots` and gui for testing.
 
 
 ```python
@@ -136,4 +136,5 @@ newbot.infer("Thanks")
 
 
     'Glad I could help! If you have any more questions, feel free to ask.'
+
 

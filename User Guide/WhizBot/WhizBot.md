@@ -80,3 +80,22 @@ And deploy the model if needed.
 chat_gui("Whiz Bot", bot.infer)
 ```
 
+
+```python
+# convert to markdown
+import nbformat
+from nbconvert import MarkdownExporter
+# get the notebook filename 
+with open('WhizBot.ipynb', 'r') as file:
+    notebook_content = nbformat.read(file, as_version=4)
+
+# Initialize the Markdown exporter
+md_exporter = MarkdownExporter()
+
+# Convert the notebook to Markdown
+markdown_output, _ = md_exporter.from_notebook_node(notebook_content)
+
+# Save the Markdown content to a file
+with open('WhizBot.md', 'w', encoding='utf-8') as file:
+    file.write(markdown_output)
+```

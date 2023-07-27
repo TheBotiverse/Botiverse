@@ -12,5 +12,11 @@ User Guide
 .. toctree::
    :numbered:
 
-   introduction.rst
-   Home.md
+   BasicBot.rst
+   WhizBot.rst
+   BasicTaskBot.rst
+   TaskBot.rst
+   Theorizer.rst
+   ConverseBot.rst
+   SpeechClassifier.rst
+   VoiceBot.rst

@@ -153,4 +153,3 @@ After training or loading the pretrained model, it can be deployed. Here we use 
 ```python
 chat_gui('Task Bot', chatbot.infer)
 ```
-
