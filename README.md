@@ -232,7 +232,11 @@ Please check this for the [documentation](https://botiverse.readthedocs.io/en/la
 ### 🏮 Demo
 No demo is available yet for the Theorizer; you may check the example in the `Examples` folder. 
 
-
 ## 🌆 Models and Preprocessors
 Most could be indepdendently used in any task; please consult the relevant section of the [documentation](https://botiverse.readthedocs.io/en/latest/) and the `Examples` folder.
 
+
+## 👥 Collaborators
+<!-- readme: contributors -start -->
+
+<!-- readme: contributors -end -->
