@@ -182,7 +182,26 @@ class TRIPPYDST:
       :return: A copy of the dialogue state.
       :rtype: dict[str, str]
       """
-      return self.state.copy()
+
+      state = self.state.copy()
+
+      # if §§ is in the state, then remove it
+      for key in state:
+        if '§§' in state[key]:
+          state[key] = state[key].replace('§§', '')
+        if '§§ ' in state[key]:
+          state[key] = state[key].replace('§§ ', '')
+
+      return state
+
+    def is_all_slots_filled(self):
+      """
+      Check if all slots are filled.
+
+      :return: True if all slots are filled, False otherwise.
+      :rtype: bool
+      """
+      return all([slot in self.state.keys() for slot in self.slot_list])
 
     def delete_slots(self, domain, slot):
       """

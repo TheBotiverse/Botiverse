@@ -50,8 +50,11 @@ class TaskBot:
 
   :param verbose: Indicates whether to print the chatbot's state after each inference, defaults to False.
   :type verbose: bool
+
+  :param append_state: Indicates whether to append the dialogue state to the response when all slots are filled, defaults to False.
+  :type append_state: bool
   """
-  def __init__(self, domains=[], slot_list=[], start=[], templates=[], label_maps={}, policy='Priority', non_referable_slots=[], non_referable_pairs=[], from_scratch=True, BERT_config=BERTConfig(), TRIPPY_config=TRIPPYConfig(), verbose=False):
+  def __init__(self, domains=[], slot_list=[], start=[], templates=[], label_maps={}, policy='Priority', non_referable_slots=[], non_referable_pairs=[], from_scratch=True, BERT_config=BERTConfig(), TRIPPY_config=TRIPPYConfig(), verbose=False, append_state=False):
     self.domains = domains
     self.policy = policy
     self.start = start
@@ -62,6 +65,7 @@ class TaskBot:
     self.sys_utter = ''
     self.inform_mem = {}
     self.verbose = verbose
+    self.append_state = append_state
 
   def save_model(self, model_path):
     """
@@ -143,6 +147,12 @@ class TaskBot:
 
     if self.verbose:
       print(f'State: {self.get_dialogue_state()}')
+
+    if self.append_state and self.dst.is_all_slots_filled():
+      if response is None:
+        response = ''
+      state = self.get_dialogue_state()
+      response = response + '\n' + str(state)
 
     return response
   
