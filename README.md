@@ -41,7 +41,7 @@ bot.infer("Hello there!")
 ```
 
 ## 💥 Supported Chatbots
-Botiverse offers 7 main chatbot architectures that cover a wide variety of use cases:
+<b>Botiverse</b> offers 7 main chatbot architectures that cover a wide variety of use cases:
 
 <img width="1426" alt="image" src="https://github.com/TheBotiverse/Botiverse/assets/49572294/d3626974-2d7f-4e13-a3a0-17dd029f786e">
 <br><br>
@@ -99,7 +99,7 @@ Botiverse offers 7 main chatbot architectures that cover a wide variety of use c
 - Beyond being a chatbot package, most representers and models can be also used independently and share the same API. For instance, you can import your favorite model or representer from `botiverse.models` or `botiverse.preprocessors` respectively and use it for any ordinary machine learning task.
 - It follows that some chatbot architectures also allow using a customly defined representer or model as long as it satisfies the relevant unified interface (as in the docs).
 
-Now let's learn more about each chatbot available inn `botiverse.bots`
+Now let's learn more about each chatbot available in `botiverse.bots`
 
 ## <img width="30" alt="image" src="https://github.com/TheBotiverse/Botiverse/assets/49572294/501fc8ff-9849-4e6d-9ed5-eaf10c04eefb"> Basic Bot
 ### 🏃‍♂️ Quick Example
@@ -128,7 +128,6 @@ You can simulate a similar demo offline using the notebook in the `Examples` fol
 ### 🏃‍♂️ Quick Example
 ```python
 bot = WhizBot(repr='BERT')
-
 bot.read_data('./dataset_ar.json')
 bot.train(epochs=10, batch_size=32)
 bot.infer("ما هي الدورات المتاحة؟")
@@ -149,9 +148,7 @@ You can simulate a similar demo offline using the notebook in the `Examples` fol
 ## <img width="30" alt="image" src="https://github.com/TheBotiverse/Botiverse/assets/49572294/853ef1f1-e8a2-4244-88c6-dcb09209ad91"> Basic Task Bot
 ### 🏃‍♂️ Quick Example
 ```python
-chatbot = BasicTaskBot(domains_slots, templates, domains_pattern, slots_pattern)
-bot.read_data('dataset.json')
-bot.train()
+tbot = BasicTaskBot(domains_slots, templates, domains_pattern, slots_pattern)
 bot.infer("I want to book a flight")
 ```
 ### 🗂️ User Guide & Docs
