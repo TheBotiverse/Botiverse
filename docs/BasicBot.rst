@@ -165,9 +165,3 @@ needed by the model’s fit.
 
     'Glad I could help! If you have any more questions, feel free to ask.'
 
-
-
-.. code:: ipython3
-
-    !jupyter nbconvert --to markdown BasicBot.ipynb
-    !jupyter nbconvert --to rst BasicBot.ipynb

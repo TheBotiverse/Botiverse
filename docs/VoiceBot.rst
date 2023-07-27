@@ -57,8 +57,3 @@ Whenever the bot says something ``max_duration`` time will be waited
 .. code:: ipython3
 
     bot.simulate_call()
-
-.. code:: ipython3
-
-    !jupyter nbconvert --to markdown VoiceBot.ipynb
-    !jupyter nbconvert --to rst VoiceBot.ipynb

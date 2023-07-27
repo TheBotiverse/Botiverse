@@ -95,28 +95,3 @@ And deploy the model if needed.
 .. code:: ipython3
 
     chat_gui("Whiz Bot", bot.infer)
-
-.. code:: ipython3
-
-    # convert to markdown
-    import nbformat
-    from nbconvert import MarkdownExporter
-    # get the notebook filename 
-    with open('WhizBot.ipynb', 'r') as file:
-        notebook_content = nbformat.read(file, as_version=4)
-    
-    # Initialize the Markdown exporter
-    md_exporter = MarkdownExporter()
-    
-    # Convert the notebook to Markdown
-    markdown_output, _ = md_exporter.from_notebook_node(notebook_content)
-    
-    # Save the Markdown content to a file
-    with open('WhizBot.md', 'w', encoding='utf-8') as file:
-        file.write(markdown_output)
-
-.. code:: ipython3
-
-    !jupyter nbconvert --to markdown WhizBot.ipynb
-    !jupyter nbconvert --to rst WhizBot.ipynb
-

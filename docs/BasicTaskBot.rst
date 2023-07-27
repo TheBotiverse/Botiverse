@@ -128,10 +128,3 @@ We can try out our chatbot using the GUI as follows
 
     <botiverse.gui.gui.chat_gui at 0x106a484f0>
 
-
-
-.. code:: ipython3
-
-    !jupyter nbconvert --to markdown BasicTaskBot.ipynb
-    !jupyter nbconvert --to rst BasicTaskBot.ipynb
-

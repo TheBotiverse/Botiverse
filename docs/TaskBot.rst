@@ -159,9 +159,3 @@ we use a simple chat GUI for that purpose.
 .. code:: ipython3
 
     chat_gui('Task Bot', chatbot.infer)
-
-.. code:: ipython3
-
-    !jupyter nbconvert --to markdown TaskBot.ipynb
-    !jupyter nbconvert --to rst TaskBot.ipynb
-
