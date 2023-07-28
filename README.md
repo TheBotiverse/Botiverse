@@ -229,7 +229,7 @@ QAs = generate(context)
 print(json.dumps(QAs,indent=4))
 ```
 ### 🗂️ User Guide & Docs
-Please check this for the [documentation](https://botiverse.readthedocs.io/en/latest/botiverse.bots.Theorizer.html) which also includes the [user guide](https://botiverse.readthedocs.io/en/latest/Theorizer.html).
+Please check this for the [documentation](https://botiverse.readthedocs.io/en/latest/botiverse.Theorizer.html) which also includes the [user guide](https://botiverse.readthedocs.io/en/latest/Theorizer.html).
 
 ### 🏮 Demo
 No demo is available yet for the Theorizer; you may check the example in the [Examples](https://github.com/TheBotiverse/Botiverse/tree/main/Examples) folder. 
