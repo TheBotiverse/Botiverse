@@ -24,6 +24,9 @@ pip install botiverse[voice]
 ```
 and make sure to also have FFMPEG on your machine, as needed by the unavoidable dependency `PyAudio`.
 
+## 🐞 Bugs, Suggestions or Questions
+Please be welcome to submit an issue.
+
 ## 🏮 Basic Demo
 Import the chatbot you need from `botiverse.bots`. All bots have a similar interface consisting of a read, train and infer method.
 
