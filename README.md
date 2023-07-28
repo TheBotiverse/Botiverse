@@ -296,3 +296,5 @@ Most could be indepdendently used in any task; please consult the relevant secti
     </td>
 </tr>
 </table>
+
+Sincere thanks to [Abdelrahman Jamal](https://github.com/Hero2323) for helping test the package on Windows.
