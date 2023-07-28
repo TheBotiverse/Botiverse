@@ -10,7 +10,7 @@ offering optional <b>fine-grained control</b> for advanced use-cases.
 We strongly recommend referring to the [documentation](https://botiverse.readthedocs.io/en/latest/) which also comes with a humble [user guide](https://botiverse.readthedocs.io/en/latest/user_guide.html).
 
 ## 🚀 Installation
-For standard use, consider
+For standard use, consider Python 3.9+ and
 ```shell
 pip install botiverse
 ```
